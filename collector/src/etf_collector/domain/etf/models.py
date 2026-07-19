@@ -50,3 +50,20 @@ class EtfQuote(BaseModel):
     net_asset_total: float | None = None
     constituent_count: int | None = None
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+
+class EtfPrice(BaseModel):
+    """Supabase public.etf_price 테이블과 1:1 대응하는 도메인 타입 (필드명 = 컬럼명)."""
+
+    short_code: str
+    trade_date: date
+    open_price: float | None = None
+    high_price: float | None = None
+    low_price: float | None = None
+    close_price: float | None = None
+    volume: int | None = None
+    trading_value: float | None = None
+    price_change: float | None = None
+    price_change_sign: str | None = None
+    corporate_action_code: str | None = None
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
