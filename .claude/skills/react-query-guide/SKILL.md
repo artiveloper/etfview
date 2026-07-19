@@ -14,7 +14,7 @@ description: >
 > 대상: `web/` 서브프로젝트. 경로 언급은 `web/` 기준 상대경로다.
 > UI/컴포넌트/Tailwind·shadcn 구현 → `shadcn-ui` 스킬 참조
 > Next.js Server/Client 경계·Suspense → `nextjs-guide` 스킬 참조
-> Supabase 클라이언트 → 현재 `lib/supabase/client.ts` (anon 키, 읽기 전용 — 이 프로젝트는 DB 스키마를 소유하지 않는다. 쓰기는 별도 저장소 `eft-collector`가 담당)
+> Supabase 클라이언트 → 현재 `lib/supabase/client.ts` (publishable key, 읽기 전용 — 이 프로젝트는 DB 스키마를 소유하지 않는다. 쓰기는 별도 저장소 `eft-collector`가 담당)
 
 ---
 

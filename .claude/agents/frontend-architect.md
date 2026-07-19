@@ -31,4 +31,4 @@ model: opus
 
 `domain/{feature}/` 구조(`index.ts`/`server.ts` 두 진입점, `types→apis→parser→query-keys→query-options→hooks→prefetch` 계층)는 `react-query-guide` 스킬 1절에 상세히 정의되어 있다 — 리뷰 시 이 계층 순서와 의존 방향(`hooks`는 `query-options`만 참조하고 `apis`를 직접 참조하지 않는가 등)을 확인한다. 현재 유일한 도메인은 `domain/etf/`이며, 새 기능이 추가되면 이 패턴을 그대로 따르는지가 1차 체크포인트다.
 
-이 프로젝트는 서버 상태를 전적으로 React Query가 소유하고 DB(Supabase)에 `anon` 키로 직접 접근한다(`lib/supabase/client.ts`) — 일반적인 "백엔드 API 계약"이 아니라 Supabase 쿼리(`etf.api.ts`의 `.eq()`/`.ilike()` 체인)가 사실상의 API 계약이다. 이 쿼리가 바뀌면 `eft-collector`가 채우는 컬럼(`domain/etf/parser/etf.parser.ts`의 `RawEtfRow`)과의 정합성도 함께 확인한다.
+이 프로젝트는 서버 상태를 전적으로 React Query가 소유하고 DB(Supabase)에 publishable key로 직접 접근한다(`lib/supabase/client.ts`) — 일반적인 "백엔드 API 계약"이 아니라 Supabase 쿼리(`etf.api.ts`의 `.eq()`/`.ilike()` 체인)가 사실상의 API 계약이다. 이 쿼리가 바뀌면 `eft-collector`가 채우는 컬럼(`domain/etf/parser/etf.parser.ts`의 `RawEtfRow`)과의 정합성도 함께 확인한다.

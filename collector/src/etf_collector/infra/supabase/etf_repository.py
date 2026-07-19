@@ -1,7 +1,7 @@
 from etf_collector.domain.etf.models import EtfInfo
 from supabase import Client
 
-_TABLE = "etf_info"
+_TABLE = "etf"
 
 
 class EtfInfoRepository:
@@ -14,3 +14,7 @@ class EtfInfoRepository:
         payload = [row.model_dump(mode="json") for row in rows]
         self._supabase.table(_TABLE).upsert(payload, on_conflict="short_code").execute()
         return len(payload)
+
+    def fetch_all(self) -> list[EtfInfo]:
+        result = self._supabase.table(_TABLE).select("*").execute()
+        return [EtfInfo.model_validate(row) for row in result.data]

@@ -31,12 +31,12 @@ model: opus
 
 ### 서브프로젝트 간 경계 (가장 중요)
 
-`web/`(etfview.kr)과 `collector/`(구 eft-collector)는 **`etf_info` Supabase 테이블 스키마로만 결합된 별개의 배포 단위**다. `web/`은 anon 키로 읽기만 하고, `collector/`가 service_role 키로 유일하게 쓴다. 스키마 변경은 항상 두 서브프로젝트 모두에 영향을 준다(`collector/src/etf_collector/domain/etf/models.py` ↔ `web/domain/etf/parser/etf.parser.ts`의 `RawEtfRow`) — 한쪽만 바뀌면 조용히 필드 누락/타입 불일치가 생긴다. 이 경계를 넘는 변경(예: `web/`에 쓰기 로직 추가, `collector/`가 프론트 렌더링에 관여)은 구조 위반 신호로 본다.
+`web/`(etfview.kr)과 `collector/`(구 eft-collector)는 **`etf` Supabase 테이블 스키마로만 결합된 별개의 배포 단위**다. `web/`은 publishable key로 읽기만 하고, `collector/`가 secret key로 유일하게 쓴다. 스키마 변경은 항상 두 서브프로젝트 모두에 영향을 준다(`collector/src/etf_collector/domain/etf/models.py` ↔ `web/domain/etf/parser/etf.parser.ts`의 `RawEtfRow`) — 한쪽만 바뀌면 조용히 필드 누락/타입 불일치가 생긴다. 이 경계를 넘는 변경(예: `web/`에 쓰기 로직 추가, `collector/`가 프론트 렌더링에 관여)은 구조 위반 신호로 본다.
 
 ### web/ (Next.js — 읽기 전용 ETF 정보 사이트)
 
-Next.js App Router + React Query 기반. Supabase에 `anon` 키로 직접 조회하며(`web/lib/supabase/client.ts`, `web/domain/etf/apis/etf.api.ts`) 자체 백엔드 API는 없다 — "쓰기 없는 읽기 전용 Supabase 클라이언트 직접 노출"이 이 프로젝트 규모에 맞는 선택인지는 상위 구조 리뷰에서 짚을 가치가 있는 지점이다.
+Next.js App Router + React Query 기반. Supabase에 publishable key로 직접 조회하며(`web/lib/supabase/client.ts`, `web/domain/etf/apis/etf.api.ts`) 자체 백엔드 API는 없다 — "쓰기 없는 읽기 전용 Supabase 클라이언트 직접 노출"이 이 프로젝트 규모에 맞는 선택인지는 상위 구조 리뷰에서 짚을 가치가 있는 지점이다.
 
 ### collector/ (Python — KIS Open API 배치 수집기)
 
-한국투자증권(KIS) Open API로 ETF 정보를 수집해 Supabase `etf_info`에 적재하는 **APScheduler 상시 프로세스**다(Docker 컨테이너 배포). 규모는 소규모 배치 수집기 — 마이크로서비스 분해나 메시지 큐 같은 복잡성은 요구사항 대비 과설계다. 확장 지점은 이미 `jobs/`에 분리되어 있다: 현재는 `sync_etf_info`(마스터파일 기반 부분 필드) 1개 job뿐이며, 종목별 KIS 상세 API로 나머지 필드(기초지수/운용사/총보수 등)를 채우는 enrichment job이 다음 확장 대상이다. 이 확장이 기존 `domain/infra/jobs/scheduler` 계층 경계를 깨지 않는지가 핵심 리뷰 포인트.
+한국투자증권(KIS) Open API로 ETF 정보를 수집해 Supabase `etf`에 적재하는 **APScheduler 상시 프로세스**다(Docker 컨테이너 배포). 규모는 소규모 배치 수집기 — 마이크로서비스 분해나 메시지 큐 같은 복잡성은 요구사항 대비 과설계다. 확장 지점은 이미 `jobs/`에 분리되어 있다: 현재는 `sync_etf_info`(마스터파일 기반 부분 필드) 1개 job뿐이며, 종목별 KIS 상세 API로 나머지 필드(기초지수/운용사/총보수 등)를 채우는 enrichment job이 다음 확장 대상이다. 이 확장이 기존 `domain/infra/jobs/scheduler` 계층 경계를 깨지 않는지가 핵심 리뷰 포인트.

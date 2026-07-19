@@ -4,40 +4,63 @@ import argparse
 import asyncio
 import logging
 
+import httpx
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from etf_collector.config import Settings, get_settings
+from etf_collector.config import get_settings
+from etf_collector.infra.kis.auth import KisAuthManager
 from etf_collector.infra.supabase.client import get_supabase_client
+from etf_collector.infra.supabase.etf_constituent_repository import EtfConstituentRepository
 from etf_collector.infra.supabase.etf_repository import EtfInfoRepository
-from etf_collector.jobs.sync_etf_info import sync_etf_info
+from etf_collector.infra.supabase.job_log_repository import JobExecutionLogRepository
+from etf_collector.jobs.pipeline import run_pipeline
 from etf_collector.logging_config import configure_logging
+from supabase import Client
 
 logger = logging.getLogger(__name__)
 
 
-def _build_repository(settings: Settings) -> EtfInfoRepository:
-    supabase = get_supabase_client(settings)
-    return EtfInfoRepository(supabase)
+def _build_repositories(
+    supabase: Client,
+) -> tuple[EtfInfoRepository, EtfConstituentRepository, JobExecutionLogRepository]:
+    return (
+        EtfInfoRepository(supabase),
+        EtfConstituentRepository(supabase),
+        JobExecutionLogRepository(supabase),
+    )
 
 
 async def _run_once() -> None:
     settings = get_settings()
-    repository = _build_repository(settings)
-    await sync_etf_info(repository)
+    supabase = get_supabase_client(settings)
+    etf_repository, constituent_repository, job_log_repository = _build_repositories(supabase)
+    await run_pipeline(
+        settings, supabase, etf_repository, constituent_repository, job_log_repository
+    )
+
+
+async def _run_revoke() -> None:
+    settings = get_settings()
+    supabase = get_supabase_client(settings)
+    async with httpx.AsyncClient(timeout=30.0) as http_client:
+        auth_manager = KisAuthManager(settings, supabase, http_client)
+        await auth_manager.revoke_token()
+    logger.info("KIS 접근토큰 폐기 완료")
 
 
 def _run_scheduler() -> None:
     settings = get_settings()
-    repository = _build_repository(settings)
+    supabase = get_supabase_client(settings)
+    etf_repository, constituent_repository, job_log_repository = _build_repositories(supabase)
 
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
-        sync_etf_info,
+        run_pipeline,
         trigger="cron",
         day_of_week=settings.sync_cron_day_of_week,
         hour=settings.sync_cron_hour,
         minute=settings.sync_cron_minute,
-        args=[repository],
+        args=[settings, supabase, etf_repository, constituent_repository, job_log_repository],
     )
     scheduler.start()
     logger.info(
@@ -55,9 +78,12 @@ def run() -> None:
     parser.add_argument(
         "--once", action="store_true", help="스케줄을 기다리지 않고 즉시 1회 실행 후 종료"
     )
+    parser.add_argument("--revoke", action="store_true", help="캐시된 KIS 접근토큰을 폐기하고 종료")
     args = parser.parse_args()
 
-    if args.once:
+    if args.revoke:
+        asyncio.run(_run_revoke())
+    elif args.once:
         asyncio.run(_run_once())
     else:
         _run_scheduler()

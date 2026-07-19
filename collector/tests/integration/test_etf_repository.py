@@ -23,7 +23,7 @@ def test_upsert_many_sends_payload_with_on_conflict() -> None:
     count = repository.upsert_many([_row()])
 
     assert count == 1
-    supabase.table.assert_called_once_with("etf_info")
+    supabase.table.assert_called_once_with("etf")
     table = supabase.table.return_value
     args, kwargs = table.upsert.call_args
     assert args[0][0]["short_code"] == "069500"

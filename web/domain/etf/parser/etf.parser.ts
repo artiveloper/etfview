@@ -4,8 +4,8 @@ type RawEtfRow = {
     short_code: string
     standard_code: string
     name: string | null
-    abbr_name: string | null
-    eng_name: string | null
+    abbreviated_name: string | null
+    english_name: string | null
     listed_date: string | null
     base_index_name: string | null
     index_provider: string | null
@@ -15,7 +15,7 @@ type RawEtfRow = {
     base_asset_class: string | null
     listed_shares: number | null
     manager: string | null
-    cu_quantity: number | null
+    creation_unit_quantity: number | null
     total_fee: number | null
     tax_type: string | null
     updated_at: string
@@ -31,8 +31,8 @@ function parseEtfInfo(raw: RawEtfRow): EtfInfo {
         shortCode: raw.short_code,
         standardCode: raw.standard_code,
         name: raw.name,
-        abbrName: raw.abbr_name,
-        engName: raw.eng_name,
+        abbreviatedName: raw.abbreviated_name,
+        englishName: raw.english_name,
         listedDate: raw.listed_date,
         baseIndexName: raw.base_index_name,
         indexProvider: raw.index_provider,
@@ -42,7 +42,7 @@ function parseEtfInfo(raw: RawEtfRow): EtfInfo {
         baseAssetClass: raw.base_asset_class,
         listedShares: raw.listed_shares,
         manager: raw.manager,
-        cuQuantity: raw.cu_quantity,
+        creationUnitQuantity: raw.creation_unit_quantity,
         totalFee: raw.total_fee,
         taxType: raw.tax_type,
         updatedAt: raw.updated_at,

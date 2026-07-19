@@ -30,7 +30,7 @@
 - 내가 좋아하는 방식이라도 기존 스타일에 맞춘다(→ `web/`은 `nextjs-guide` 4절 4-space, `collector/`는 `python-guide`의 ruff 설정 참고).
 - 무관한 죽은 코드는 발견하면 언급만 하고 지우지 않는다.
 - 단, 내 변경이 만든 미사용 import·변수·함수는 내가 제거한다.
-- `web/`과 `collector/`는 별개 배포 단위다 — 한쪽 작업 중 다른 쪽 파일을 건드릴 이유가 없으면 건드리지 않는다(예외: `etf_info` 스키마처럼 둘 다에 영향을 주는 변경).
+- `web/`과 `collector/`는 별개 배포 단위다 — 한쪽 작업 중 다른 쪽 파일을 건드릴 이유가 없으면 건드리지 않는다(예외: `etf` 스키마처럼 둘 다에 영향을 주는 변경).
 
 ## 4. 목표 기반 실행
 
@@ -64,8 +64,8 @@
 
 - 전체 에러 메시지와 스택 트레이스를 읽는다. 가정한 로그가 아니라 실제 출력을 본다.
 - 원인 확인 전에 "흔한 수정"을 적용하지 않는다. 불명확하면 로그/콘솔을 찍어 상태를 확인한 뒤 고친다.
-- `web/`은 Supabase(anon 키, 읽기 전용)에 의존한다 — 실패 시 Supabase 쿼리 / React Query / 렌더링 중 어느 경계인지 먼저 특정한다.
-- `collector/`는 KIS Open API·Supabase(service_role 키)에 의존한다 — 실패 시 KIS 마스터파일 파싱 / KIS 인증 / Supabase upsert / 스케줄러 중 어느 경계인지 먼저 특정한다.
+- `web/`은 Supabase(publishable key, 읽기 전용)에 의존한다 — 실패 시 Supabase 쿼리 / React Query / 렌더링 중 어느 경계인지 먼저 특정한다.
+- `collector/`는 KIS Open API·Supabase(secret key)에 의존한다 — 실패 시 KIS 마스터파일 파싱 / KIS 인증 / Supabase upsert / 스케줄러 중 어느 경계인지 먼저 특정한다.
 
 ## 8. 완료 전에 실행해서 확인한다
 
@@ -79,7 +79,7 @@
 
 되돌릴 수 있게, 한 번에 하나의 논리적 변경만 커밋한다.
 
-- 무관한 변경을 한 커밋에 섞지 않는다. 리팩터링과 기능 추가를 분리한다. `web/`과 `collector/`에 걸친 변경(`etf_info` 스키마 등)은 예외적으로 한 커밋에 묶을 수 있다 — 원자성의 단위는 "논리적 변경" 하나이지 "디렉토리 하나"가 아니다.
+- 무관한 변경을 한 커밋에 섞지 않는다. 리팩터링과 기능 추가를 분리한다. `web/`과 `collector/`에 걸친 변경(`etf` 스키마 등)은 예외적으로 한 커밋에 묶을 수 있다 — 원자성의 단위는 "논리적 변경" 하나이지 "디렉토리 하나"가 아니다.
 - 커밋 메시지는 "무엇을 왜"가 드러나게 쓴다.
 - 커밋·푸시는 사용자가 요청할 때 한다. 기본 브랜치라면 먼저 브랜치를 만든다.
 
@@ -87,7 +87,7 @@
 
 ## 프로젝트 컨텍스트 & 검증
 
-이 저장소는 국내 상장 ETF 정보를 다루는 두 서브프로젝트로 구성된다. **`web/`**은 조회 전용 Next.js 사이트, **`collector/`**는 한국투자증권(KIS) Open API로 ETF 정보를 수집해 Supabase에 적재하는 Python 배치 수집기다. 둘은 **`etf_info` Supabase 테이블 스키마로만 결합**된다 — `collector/`가 service_role 키로 유일하게 쓰고, `web/`은 anon 키로 읽기만 한다. 스키마를 바꾸면 항상 양쪽 모두(`collector/src/etf_collector/domain/etf/models.py` ↔ `web/domain/etf/parser/etf.parser.ts`) 확인한다.
+이 저장소는 국내 상장 ETF 정보를 다루는 두 서브프로젝트로 구성된다. **`web/`**은 조회 전용 Next.js 사이트, **`collector/`**는 한국투자증권(KIS) Open API로 ETF 정보를 수집해 Supabase에 적재하는 Python 배치 수집기다. 둘은 **`etf` Supabase 테이블 스키마로만 결합**된다 — `collector/`가 secret key로 유일하게 쓰고, `web/`은 publishable key로 읽기만 한다. 스키마를 바꾸면 항상 양쪽 모두(`collector/src/etf_collector/domain/etf/models.py` ↔ `web/domain/etf/parser/etf.parser.ts`) 확인한다.
 
 ### web/ — Next.js 프론트엔드
 
@@ -96,7 +96,7 @@ web/app/                진입점 (App Router) — page.tsx, layout.tsx, provide
 web/domain/etf/          유일한 도메인 — types/apis/parser/query-keys/query-options/hooks/prefetch 7계층
 web/components/etf/      ETF 목록/카드/필터/검색/스켈레톤 (기능 콜로케이션)
 web/components/ui/        shadcn 프리미티브 (Card, Badge, Button, ToggleGroup 등)
-web/lib/supabase/         Supabase 클라이언트 (anon 키)
+web/lib/supabase/         Supabase 클라이언트 (publishable key)
 web/lib/react-query/      QueryClient, runPrefetch
 ```
 
@@ -121,7 +121,7 @@ collector/src/etf_collector/infra/kis/     KIS 마스터파일 다운로드·파
 collector/src/etf_collector/infra/supabase/ Supabase 클라이언트, EtfInfoRepository
 collector/src/etf_collector/jobs/          domain+infra 오케스트레이션 (sync_etf_info)
 collector/src/etf_collector/scheduler/     APScheduler 등록 + CLI 진입점 (--once 플래그)
-collector/supabase/migrations/             etf_info, kis_token_cache 스키마
+collector/supabase/migrations/             etf, kis_token_cache, etf_constituent, job_execution_log 스키마
 collector/tests/{unit,integration}/
 ```
 

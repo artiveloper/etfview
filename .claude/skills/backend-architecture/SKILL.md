@@ -71,4 +71,4 @@ eft-collector에는 HTTP controller가 없다 — 계층은 `scheduler`(진입�
 
 "API 계약"은 두 개: (1) KIS Open API를 **소비**하는 계약(`infra/kis/`) — 여기서는 "버전 변경 시 하위 호환"이 아니라 "KIS가 필드를 바꾸면 우리 파싱이 조용히 깨지지 않는가"가 핵심, (2) Supabase에 **적재**하는 계약(`infra/supabase/etf_repository.py`) — `upsert_many`는 멱등적이므로(같은 데이터로 재실행해도 안전) 이 멱등성이 새 job 추가 시에도 유지되는지 확인한다.
 
-시크릿 관리는 이미 `pydantic-settings`(`config.py`)로 기동 시점 검증되고 있다 — `KIS_APP_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`가 로그에 평문 노출되지 않는지(특히 `logging_config.py`의 로그 포맷과 예외 스택트레이스)를 새 코드 추가 시마다 확인한다.
+시크릿 관리는 이미 `pydantic-settings`(`config.py`)로 기동 시점 검증되고 있다 — `KIS_APP_SECRET`, `SUPABASE_SECRET_KEY`가 로그에 평문 노출되지 않는지(특히 `logging_config.py`의 로그 포맷과 예외 스택트레이스)를 새 코드 추가 시마다 확인한다.

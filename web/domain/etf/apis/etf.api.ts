@@ -10,7 +10,7 @@ export async function fetchEtfList(params: EtfListParams): Promise<EtfListResult
     const to = from + pageSize - 1
 
     let query = supabase
-        .from('etf_info')
+        .from('etf')
         .select('*', { count: 'exact' })
         .order('short_code', { ascending: true })
 
@@ -45,7 +45,7 @@ export async function fetchEtfList(params: EtfListParams): Promise<EtfListResult
 
 export async function fetchEtfFilterOptions(): Promise<EtfFilterOptions> {
     const { data, error } = await supabase
-        .from('etf_info')
+        .from('etf')
         .select('base_asset_class, base_market_class')
 
     if (error) throw new Error(error.message)

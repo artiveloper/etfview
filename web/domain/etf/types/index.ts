@@ -4,8 +4,8 @@ export type EtfInfo = {
     shortCode: string
     standardCode: string
     name: string | null
-    abbrName: string | null
-    engName: string | null
+    abbreviatedName: string | null
+    englishName: string | null
     listedDate: string | null
     baseIndexName: string | null
     indexProvider: string | null
@@ -15,7 +15,7 @@ export type EtfInfo = {
     baseAssetClass: string | null
     listedShares: number | null
     manager: string | null
-    cuQuantity: number | null
+    creationUnitQuantity: number | null
     totalFee: number | null
     taxType: string | null
     updatedAt: string

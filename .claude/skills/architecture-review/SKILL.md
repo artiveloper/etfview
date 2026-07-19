@@ -51,7 +51,7 @@ description: >
 |-----------|---------------|
 | 요구사항/기술스택/`web/`↔`collector/` 경계/전체 구조 | `architect` |
 | "전체 리뷰해줘" / "이 PR/변경사항 종합 검토" 같은 광범위 요청 (특정 서브프로젝트 대상) | 해당 서브프로젝트의 관련 에이전트 전원(보통 architect + 2개), 상위 구조 변경이면 `architect` 포함 |
-| 두 서브프로젝트 모두에 걸친 변경(예: `etf_info` 스키마 변경) | `architect` + 영향받는 양쪽의 관련 에이전트(`backend-architect`/`dba-advisor` + `frontend-architect`) |
+| 두 서브프로젝트 모두에 걸친 변경(예: `etf` 스키마 변경) | `architect` + 영향받는 양쪽의 관련 에이전트(`backend-architect`/`dba-advisor` + `frontend-architect`) |
 
 애매하면 요청 문구에 언급된 경로로 판단한다: `web/domain/` 언급 → frontend-architect, `web/components/` 스타일·색상·접근성 → design-system, `collector/src/etf_collector/infra|jobs|scheduler` 언급 → backend-architect, `collector/supabase/migrations/` 언급 → dba-advisor, `tests/` 언급(양쪽 모두 존재하므로 경로로 구분) → 해당 서브프로젝트의 qa 에이전트.
 
@@ -81,6 +81,6 @@ description: >
 
 **광범위 흐름**: "collector에 enrichment job 추가했는데 전체적으로 검토해줘" → `backend-architect`(계층/에러처리) + `dba-advisor`(새 컬럼/인덱스) + `qa-backend`(테스트 갭) 병렬 호출 → 3개 결과를 소제목으로 종합.
 
-**모노레포 경계 흐름**: "etf_info에 컬럼 추가하려는데 양쪽 다 봐줘" → `architect`(경계 정합성) + `dba-advisor`(마이그레이션) + `backend-architect`(모델 동기화) + `frontend-architect`(파서 타입 동기화) 병렬 호출 → 4개 결과 종합.
+**모노레포 경계 흐름**: "etf에 컬럼 추가하려는데 양쪽 다 봐줘" → `architect`(경계 정합성) + `dba-advisor`(마이그레이션) + `backend-architect`(모델 동기화) + `frontend-architect`(파서 타입 동기화) 병렬 호출 → 4개 결과 종합.
 
 **에러 흐름**: `design-system` 호출이 타임아웃 → 1회 재시도 후에도 실패 → 나머지 결과만으로 응답하고 "디자인 시스템 관점은 이번에 확인하지 못했다"고 명시.

@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     kis_env: str = "prod"
 
     supabase_url: str
-    supabase_service_role_key: str
+    supabase_secret_key: str
 
     sync_cron_day_of_week: str = "mon-fri"
     sync_cron_hour: int = 16

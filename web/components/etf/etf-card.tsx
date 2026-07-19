@@ -13,7 +13,7 @@ export function EtfCard({ etf }: Props) {
                 <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                         <p className="truncate font-semibold leading-tight">
-                            {etf.name ?? etf.abbrName ?? '-'}
+                            {etf.name ?? etf.abbreviatedName ?? '-'}
                         </p>
                         <p className="mt-0.5 text-sm text-muted-foreground">{etf.shortCode}</p>
                     </div>
