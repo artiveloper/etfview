@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase/client'
-import { parseEtfList, parseEtfFilterOptions } from '../parser/etf.parser'
-import type { EtfListParams, EtfListResult, EtfFilterOptions } from '../types'
+import { parseEtfList, parseEtfInfo, parseEtfQuote, parseEtfFilterOptions } from '../parser/etf.parser'
+import type { EtfListParams, EtfListResult, EtfFilterOptions, EtfInfo, EtfQuote } from '../types'
 
 const DEFAULT_PAGE_SIZE = 20
 
@@ -41,6 +41,24 @@ export async function fetchEtfList(params: EtfListParams): Promise<EtfListResult
     if (!data) throw new Error('ETF 데이터를 가져올 수 없습니다.')
 
     return parseEtfList(data, count ?? 0, page, pageSize)
+}
+
+export async function fetchEtfDetail(shortCode: string): Promise<EtfInfo> {
+    const { data, error } = await supabase.from('etf').select('*').eq('short_code', shortCode).single()
+
+    if (error) throw new Error(error.message)
+    return parseEtfInfo(data)
+}
+
+export async function fetchEtfQuote(shortCode: string): Promise<EtfQuote | null> {
+    const { data, error } = await supabase
+        .from('etf_quote')
+        .select('*')
+        .eq('short_code', shortCode)
+        .maybeSingle()
+
+    if (error) throw new Error(error.message)
+    return data ? parseEtfQuote(data) : null
 }
 
 export async function fetchEtfFilterOptions(): Promise<EtfFilterOptions> {

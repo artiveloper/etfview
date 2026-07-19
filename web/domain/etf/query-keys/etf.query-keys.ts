@@ -9,4 +9,8 @@ export const etfQueryKeys = {
         ['etf', 'list', params] as const,
 
     filterOptions: ['etf', 'filterOptions'] as const,
+
+    detail: (shortCode: string) => ['etf', 'detail', shortCode] as const,
+
+    quote: (shortCode: string) => ['etf', 'quote', shortCode] as const,
 }

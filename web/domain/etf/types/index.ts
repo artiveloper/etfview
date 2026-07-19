@@ -21,6 +21,30 @@ export type EtfInfo = {
     updatedAt: string
 }
 
+export type EtfQuote = {
+    shortCode: string
+    currentPrice: number | null
+    priceChange: number | null
+    priceChangeSign: string | null
+    priceChangeRate: number | null
+    volume: number | null
+    openPrice: number | null
+    highPrice: number | null
+    lowPrice: number | null
+    yearHighPrice: number | null
+    yearHighDate: string | null
+    yearLowPrice: number | null
+    yearLowDate: string | null
+    nav: number | null
+    navChange: number | null
+    navChangeRate: number | null
+    trackingErrorRate: number | null
+    disparityRate: number | null
+    netAssetTotal: number | null
+    constituentCount: number | null
+    updatedAt: string
+}
+
 export type EtfListParams = {
     page: number
     search: string

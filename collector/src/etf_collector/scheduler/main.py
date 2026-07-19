@@ -11,6 +11,7 @@ from etf_collector.config import get_settings
 from etf_collector.infra.kis.auth import KisAuthManager
 from etf_collector.infra.supabase.client import get_supabase_client
 from etf_collector.infra.supabase.etf_constituent_repository import EtfConstituentRepository
+from etf_collector.infra.supabase.etf_quote_repository import EtfQuoteRepository
 from etf_collector.infra.supabase.etf_repository import EtfInfoRepository
 from etf_collector.infra.supabase.job_log_repository import JobExecutionLogRepository
 from etf_collector.jobs.pipeline import run_pipeline
@@ -22,9 +23,12 @@ logger = logging.getLogger(__name__)
 
 def _build_repositories(
     supabase: Client,
-) -> tuple[EtfInfoRepository, EtfConstituentRepository, JobExecutionLogRepository]:
+) -> tuple[
+    EtfInfoRepository, EtfQuoteRepository, EtfConstituentRepository, JobExecutionLogRepository
+]:
     return (
         EtfInfoRepository(supabase),
+        EtfQuoteRepository(supabase),
         EtfConstituentRepository(supabase),
         JobExecutionLogRepository(supabase),
     )
@@ -33,9 +37,19 @@ def _build_repositories(
 async def _run_once() -> None:
     settings = get_settings()
     supabase = get_supabase_client(settings)
-    etf_repository, constituent_repository, job_log_repository = _build_repositories(supabase)
+    (
+        etf_repository,
+        quote_repository,
+        constituent_repository,
+        job_log_repository,
+    ) = _build_repositories(supabase)
     await run_pipeline(
-        settings, supabase, etf_repository, constituent_repository, job_log_repository
+        settings,
+        supabase,
+        etf_repository,
+        quote_repository,
+        constituent_repository,
+        job_log_repository,
     )
 
 
@@ -51,7 +65,12 @@ async def _run_revoke() -> None:
 def _run_scheduler() -> None:
     settings = get_settings()
     supabase = get_supabase_client(settings)
-    etf_repository, constituent_repository, job_log_repository = _build_repositories(supabase)
+    (
+        etf_repository,
+        quote_repository,
+        constituent_repository,
+        job_log_repository,
+    ) = _build_repositories(supabase)
 
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
@@ -60,7 +79,14 @@ def _run_scheduler() -> None:
         day_of_week=settings.sync_cron_day_of_week,
         hour=settings.sync_cron_hour,
         minute=settings.sync_cron_minute,
-        args=[settings, supabase, etf_repository, constituent_repository, job_log_repository],
+        args=[
+            settings,
+            supabase,
+            etf_repository,
+            quote_repository,
+            constituent_repository,
+            job_log_repository,
+        ],
     )
     scheduler.start()
     logger.info(

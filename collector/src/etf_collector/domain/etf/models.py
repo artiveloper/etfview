@@ -24,3 +24,29 @@ class EtfInfo(BaseModel):
     total_fee: float | None = None
     tax_type: str | None = None
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+
+class EtfQuote(BaseModel):
+    """Supabase public.etf_quote 테이블과 1:1 대응하는 도메인 타입 (필드명 = 컬럼명)."""
+
+    short_code: str
+    current_price: float | None = None
+    price_change: float | None = None
+    price_change_sign: str | None = None
+    price_change_rate: float | None = None
+    volume: int | None = None
+    open_price: float | None = None
+    high_price: float | None = None
+    low_price: float | None = None
+    year_high_price: float | None = None
+    year_high_date: date | None = None
+    year_low_price: float | None = None
+    year_low_date: date | None = None
+    nav: float | None = None
+    nav_change: float | None = None
+    nav_change_rate: float | None = None
+    tracking_error_rate: float | None = None
+    disparity_rate: float | None = None
+    net_asset_total: float | None = None
+    constituent_count: int | None = None
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))

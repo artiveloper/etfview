@@ -17,6 +17,7 @@ from etf_collector.config import Settings
 from etf_collector.infra.kis.auth import KisAuthManager
 from etf_collector.infra.kis.client import KisApiClient
 from etf_collector.infra.supabase.etf_constituent_repository import EtfConstituentRepository
+from etf_collector.infra.supabase.etf_quote_repository import EtfQuoteRepository
 from etf_collector.infra.supabase.etf_repository import EtfInfoRepository
 from etf_collector.infra.supabase.job_log_repository import JobExecutionLogRepository
 from etf_collector.jobs.enrich_etf_info import enrich_etf_info
@@ -46,6 +47,7 @@ async def run_pipeline(
     settings: Settings,
     supabase: Client,
     etf_repository: EtfInfoRepository,
+    quote_repository: EtfQuoteRepository,
     constituent_repository: EtfConstituentRepository,
     job_log_repository: JobExecutionLogRepository,
 ) -> None:
@@ -57,7 +59,7 @@ async def run_pipeline(
         await _run_stage(
             job_log_repository,
             "enrich_etf_info",
-            lambda: enrich_etf_info(etf_repository, auth_manager, api_client),
+            lambda: enrich_etf_info(etf_repository, quote_repository, auth_manager, api_client),
         )
         await _run_stage(
             job_log_repository,

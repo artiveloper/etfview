@@ -11,3 +11,11 @@ export function useEtfList(params: ListParams) {
 export function useEtfFilterOptions() {
     return useSuspenseQuery(etfQueryOptions.filterOptions())
 }
+
+export function useEtfDetail(shortCode: string) {
+    return useSuspenseQuery(etfQueryOptions.detail(shortCode))
+}
+
+export function useEtfQuote(shortCode: string) {
+    return useSuspenseQuery(etfQueryOptions.quote(shortCode))
+}
