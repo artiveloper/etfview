@@ -1,5 +1,5 @@
 from datetime import UTC, date, datetime
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
 from etf_collector.domain.etf.models import EtfInfo
 from etf_collector.infra.supabase.etf_repository import EtfInfoRepository
@@ -41,41 +41,28 @@ def test_upsert_many_returns_zero_for_empty_list() -> None:
     supabase.table.assert_not_called()
 
 
+def test_fetch_all_stops_at_partial_page() -> None:
+    supabase = MagicMock()
+    repository = EtfInfoRepository(supabase)
+    page = supabase.table.return_value.select.return_value.range.return_value.execute
+    page.return_value = MagicMock(data=[_row().model_dump(mode="json")])
+
+    rows = repository.fetch_all()
+
+    assert len(rows) == 1
+    page.assert_called_once()
+
+
 def test_fetch_all_paginates_past_page_size() -> None:
-    # 1000행 상한을 넘는 유니버스를 range로 나눠 모두 가져오는지 검증한다.
-    from etf_collector.infra.supabase import etf_repository as module
+    supabase = MagicMock()
+    repository = EtfInfoRepository(supabase)
+    first_page = MagicMock(data=[_row().model_dump(mode="json") for _ in range(1000)])
+    second_page = MagicMock(data=[_row().model_dump(mode="json")])
+    execute = supabase.table.return_value.select.return_value.range.return_value.execute
+    execute.side_effect = [first_page, second_page]
 
-    monkey_page = 2
-    original = module._PAGE_SIZE
-    module._PAGE_SIZE = monkey_page
-    try:
-        pages = [
-            [_row_dict("069500"), _row_dict("069501")],  # 가득 찬 페이지 → 다음 조회
-            [_row_dict("069502")],  # 미만 페이지 → 종료
-        ]
-        supabase = MagicMock()
-        query = supabase.table.return_value.select.return_value.order.return_value
-        query.range.return_value.execute.side_effect = [
-            MagicMock(data=pages[0]),
-            MagicMock(data=pages[1]),
-        ]
+    rows = repository.fetch_all()
 
-        repository = EtfInfoRepository(supabase)
-        result = repository.fetch_all()
-
-        assert [etf.short_code for etf in result] == ["069500", "069501", "069502"]
-        assert query.range.call_args_list[0].args == (0, 1)
-        assert query.range.call_args_list[1].args == (2, 3)
-    finally:
-        module._PAGE_SIZE = original
-
-
-def _row_dict(short_code: str) -> dict[str, object]:
-    return {
-        "short_code": short_code,
-        "standard_code": "KR7069500007",
-        "name": "KODEX 200",
-        "listed_date": "2002-10-14",
-        "listed_shares": 223650,
-        "updated_at": "2026-01-01T00:00:00+00:00",
-    }
+    assert len(rows) == 1001
+    range_ = supabase.table.return_value.select.return_value.range
+    assert range_.call_args_list == [call(0, 999), call(1000, 1999)]
