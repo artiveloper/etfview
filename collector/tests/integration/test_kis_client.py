@@ -11,6 +11,8 @@ def _settings() -> Settings:
     return Settings(
         kis_app_key="key",
         kis_app_secret="secret",
+        krx_username="krx-id",
+        krx_password="krx-pw",
         supabase_url="https://x.supabase.co",
         supabase_secret_key="secret",
     )

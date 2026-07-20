@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     kis_app_secret: str
     kis_env: str = "prod"
 
+    krx_username: str
+    krx_password: str
+
     supabase_url: str
     supabase_secret_key: str
 

@@ -58,7 +58,11 @@ async def run_pipeline(
         auth_manager = KisAuthManager(settings, supabase, http_client)
         api_client = KisApiClient(settings, http_client)
 
-        await _run_stage(job_log_repository, "sync_etf_info", lambda: sync_etf_info(etf_repository))
+        await _run_stage(
+            job_log_repository,
+            "sync_etf_info",
+            lambda: sync_etf_info(etf_repository, settings, http_client),
+        )
         await _run_stage(
             job_log_repository,
             "enrich_etf_info",

@@ -1,4 +1,4 @@
-# ETF_ETN 현재가 API로 ETF 종목의 세부 필드(운용사/CU수량/추적배수 등)를 보강하는 모듈
+# ETF_ETN 현재가 API로 ETF 종목의 일 1회 시세 스냅샷과 추적배수를 보강하는 모듈
 from __future__ import annotations
 
 from datetime import date
@@ -77,18 +77,11 @@ def map_to_etf_quote_fields(quote: dict[str, Any]) -> dict[str, Any]:
 def map_to_etf_info_fields(quote: dict[str, Any]) -> dict[str, Any]:
     """현재가 API 응답에서 EtfInfo 미채움 필드로 매핑 가능한 값만 추출한다.
 
-    index_provider/total_fee/tax_type/base_market_class/base_asset_class/
-    base_index_name은 이 API 응답에 없어 매핑하지 않는다 — 별도 API 확보가 필요하다.
-    replication_method는 etf_div_name(수익증권형/투자회사형 등)을 잠정 매핑한 것으로,
-    엄밀한 복제방법 개념과 다를 수 있어 검증이 필요하다.
+    manager/creation_unit_quantity/replication_method 등 나머지 정적 필드는
+    KRX 데이터포털 기반 sync_etf_info에서 이미 채워지므로, 여기서는 그 응답에
+    없는 tracking_multiplier(추적배수)만 보강한다.
     """
     fields: dict[str, Any] = {}
-    if quote.get("mbcr_name"):
-        fields["manager"] = quote["mbcr_name"]
-    if quote.get("etf_cu_unit_scrt_cnt"):
-        fields["creation_unit_quantity"] = int(quote["etf_cu_unit_scrt_cnt"])
     if quote.get("etf_trc_ert_mltp"):
         fields["tracking_multiplier"] = quote["etf_trc_ert_mltp"]
-    if quote.get("etf_div_name"):
-        fields["replication_method"] = quote["etf_div_name"]
     return fields
