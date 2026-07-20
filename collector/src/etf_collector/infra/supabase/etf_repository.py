@@ -1,7 +1,12 @@
+from typing import Any
+
 from etf_collector.domain.etf.models import EtfInfo
 from supabase import Client
 
 _TABLE = "etf"
+# PostgREST 기본 max_rows(1000)를 넘으면 select("*")만으로는 앞 1000행에서
+# 조용히 잘린다. .range()로 페이지 단위로 반복 조회해 전체를 모은다.
+_PAGE_SIZE = 1000
 
 
 class EtfInfoRepository:
@@ -16,5 +21,17 @@ class EtfInfoRepository:
         return len(payload)
 
     def fetch_all(self) -> list[EtfInfo]:
-        result = self._supabase.table(_TABLE).select("*").execute()
-        return [EtfInfo.model_validate(row) for row in result.data]
+        rows: list[Any] = []
+        offset = 0
+        while True:
+            page = (
+                self._supabase.table(_TABLE)
+                .select("*")
+                .range(offset, offset + _PAGE_SIZE - 1)
+                .execute()
+            )
+            rows.extend(page.data)
+            if len(page.data) < _PAGE_SIZE:
+                break
+            offset += _PAGE_SIZE
+        return [EtfInfo.model_validate(row) for row in rows]

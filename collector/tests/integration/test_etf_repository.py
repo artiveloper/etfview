@@ -1,5 +1,5 @@
 from datetime import UTC, date, datetime
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
 from etf_collector.domain.etf.models import EtfInfo
 from etf_collector.infra.supabase.etf_repository import EtfInfoRepository
@@ -39,3 +39,30 @@ def test_upsert_many_returns_zero_for_empty_list() -> None:
 
     assert count == 0
     supabase.table.assert_not_called()
+
+
+def test_fetch_all_stops_at_partial_page() -> None:
+    supabase = MagicMock()
+    repository = EtfInfoRepository(supabase)
+    page = supabase.table.return_value.select.return_value.range.return_value.execute
+    page.return_value = MagicMock(data=[_row().model_dump(mode="json")])
+
+    rows = repository.fetch_all()
+
+    assert len(rows) == 1
+    page.assert_called_once()
+
+
+def test_fetch_all_paginates_past_page_size() -> None:
+    supabase = MagicMock()
+    repository = EtfInfoRepository(supabase)
+    first_page = MagicMock(data=[_row().model_dump(mode="json") for _ in range(1000)])
+    second_page = MagicMock(data=[_row().model_dump(mode="json")])
+    execute = supabase.table.return_value.select.return_value.range.return_value.execute
+    execute.side_effect = [first_page, second_page]
+
+    rows = repository.fetch_all()
+
+    assert len(rows) == 1001
+    range_ = supabase.table.return_value.select.return_value.range
+    assert range_.call_args_list == [call(0, 999), call(1000, 1999)]
