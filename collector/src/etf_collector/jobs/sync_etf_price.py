@@ -35,15 +35,21 @@ async def sync_etf_price(
     etf_repository: EtfInfoRepository,
     auth_manager: KisAuthManager,
     api_client: KisApiClient,
+    window_days: int = _SYNC_WINDOW_DAYS,
 ) -> int:
+    """최근 window_days일치 일별 주가를 동기화한다.
+
+    장 마감 후 정기 실행은 기본 7일 창으로 주말·공휴일 이후 누락을 재보정하고,
+    장중 30분 주기 실행은 window_days=0으로 오늘 하루만 좁혀 미완성 봉만 갱신한다.
+    """
     universe = etf_repository.fetch_all()
-    logger.info("주가 동기화 대상 ETF %d건", len(universe))
+    logger.info("주가 동기화 대상 ETF %d건 (최근 %d일)", len(universe), window_days)
     if not universe:
         return 0
 
     token = await auth_manager.get_access_token()
     date_to = date.today()
-    date_from = date_to - timedelta(days=_SYNC_WINDOW_DAYS)
+    date_from = date_to - timedelta(days=window_days)
 
     results = await asyncio.gather(
         *(_fetch_one(api_client, token, etf.short_code, date_from, date_to) for etf in universe),
