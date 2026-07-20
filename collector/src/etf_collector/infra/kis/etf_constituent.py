@@ -1,38 +1,61 @@
-# ETF 구성종목(보유종목) 수집 뼈대 — 데이터 소스 미확정
-"""master_file.py와 동일한 "다운로드 → 파서 → 도메인 매핑" 3단 구조로 뼈대만 둔다.
-
-정확한 다운로드 URL과 필드 레이아웃은 아직 확정되지 않았다(collector/docs에
-대응 API 문서 없음). 실제 스펙이 확보되면 이 파일의 구현부만 채우면
-jobs/sync_etf_constituent.py 이후 파이프라인은 그대로 동작한다.
-"""
-
+# ETF 구성종목시세 API로 ETF가 보유한 구성종목(바스켓) 현황을 조회하는 모듈
 from __future__ import annotations
 
+from datetime import date
 from typing import Any
 
-import httpx
-
 from etf_collector.domain.etf.constituent import EtfConstituent
+from etf_collector.infra.kis.client import KisApiClient
+
+_PATH = "/uapi/etfetn/v1/quotations/inquire-component-stock-price"
+_TR_ID = "FHKST121600C0"
+_MARKET_DIV_CODE = "J"
+_SCR_DIV_CODE = "11216"
 
 
-async def download_constituent_master(client: httpx.AsyncClient) -> bytes:
-    """구성종목 마스터파일(또는 API 응답)을 원본 바이트로 내려받는다."""
-    raise NotImplementedError("구성종목 데이터 소스가 아직 확정되지 않았다")
+async def fetch_constituents(
+    client: KisApiClient, token: str, short_code: str
+) -> list[dict[str, Any]]:
+    """단일 ETF 종목의 구성종목 배열(output2)을 조회한다."""
+    result = await client.get(
+        _PATH,
+        _TR_ID,
+        token,
+        {
+            "fid_cond_mrkt_div_code": _MARKET_DIV_CODE,
+            "fid_input_iscd": short_code,
+            "fid_cond_scr_div_code": _SCR_DIV_CODE,
+        },
+    )
+    output2: list[dict[str, Any]] = result["output2"]
+    return output2
 
 
-def parse_constituent_master(content: bytes) -> list[dict[str, Any]]:
-    """원본 바이트를 파싱해 종목별 원시 행(raw row) 목록으로 변환한다."""
-    raise NotImplementedError("구성종목 필드 레이아웃이 아직 확정되지 않았다")
+def map_to_constituent_rows(
+    etf_short_code: str, output2: list[dict[str, Any]], reference_date: date
+) -> list[EtfConstituent]:
+    """구성종목시세 응답(output2)을 EtfConstituent 행 목록으로 변환한다.
 
-
-def map_to_domain(rows: list[dict[str, Any]]) -> list[EtfConstituent]:
-    """원시 행 목록을 EtfConstituent 도메인 타입으로 매핑한다."""
-    raise NotImplementedError("구성종목 필드 매핑이 아직 확정되지 않았다")
-
-
-async def fetch_etf_constituents() -> list[EtfConstituent]:
-    """구성종목 전체를 조회해 도메인 타입 목록으로 반환한다."""
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        content = await download_constituent_master(client)
-    rows = parse_constituent_master(content)
-    return map_to_domain(rows)
+    이 API는 구성종목의 표준코드(ISIN)와 보유수량을 제공하지 않아
+    constituent_standard_code/held_quantity는 항상 None으로 남는다.
+    """
+    rows: list[EtfConstituent] = []
+    for item in output2:
+        constituent_short_code = item.get("stck_shrn_iscd")
+        if not constituent_short_code:
+            continue
+        rows.append(
+            EtfConstituent(
+                etf_short_code=etf_short_code,
+                constituent_short_code=constituent_short_code,
+                constituent_name=item.get("hts_kor_isnm") or None,
+                weight_percentage=(
+                    float(item["etf_cnfg_issu_rlim"]) if item.get("etf_cnfg_issu_rlim") else None
+                ),
+                market_value_amount=(
+                    float(item["etf_vltn_amt"]) if item.get("etf_vltn_amt") else None
+                ),
+                reference_date=reference_date,
+            )
+        )
+    return rows

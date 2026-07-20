@@ -72,5 +72,7 @@ async def run_pipeline(
         await _run_stage(
             job_log_repository,
             "sync_etf_constituent",
-            lambda: sync_etf_constituent(constituent_repository),
+            lambda: sync_etf_constituent(
+                constituent_repository, etf_repository, auth_manager, api_client
+            ),
         )
