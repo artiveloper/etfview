@@ -37,11 +37,15 @@ def test_maps_quote_fields() -> None:
         "dryy_lwpr_date": "20260102",
         "nav": "35010.50",
         "nav_prdy_vrss": "-140",
+        "nav_prdy_vrss_sign": "5",
         "nav_prdy_ctrt": "-0.40",
         "trc_errt": "0.05",
         "dprt": "-0.03",
         "etf_ntas_ttam": "1234567890",
         "etf_cnfg_issu_cnt": "200",
+        "etf_crcl_stcn": "226100000",
+        "frgn_hldn_qty": "52396766",
+        "frgn_hldn_qty_rate": "23.17",
     }
 
     fields = map_to_etf_quote_fields(quote)
@@ -61,11 +65,15 @@ def test_maps_quote_fields() -> None:
         "year_low_date": date(2026, 1, 2),
         "nav": 35010.50,
         "nav_change": -140.0,
+        "nav_change_sign": "5",
         "nav_change_rate": -0.40,
         "tracking_error_rate": 0.05,
         "disparity_rate": -0.03,
         "net_asset_total": 1234567890.0,
         "constituent_count": 200,
+        "circulating_shares": 226100000,
+        "foreign_holding_qty": 52396766,
+        "foreign_holding_rate": 23.17,
     }
 
 

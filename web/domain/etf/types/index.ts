@@ -37,11 +37,15 @@ export type EtfQuote = {
     yearLowDate: string | null
     nav: number | null
     navChange: number | null
+    navChangeSign: string | null
     navChangeRate: number | null
     trackingErrorRate: number | null
     disparityRate: number | null
     netAssetTotal: number | null
     constituentCount: number | null
+    circulatingShares: number | null
+    foreignHoldingQty: number | null
+    foreignHoldingRate: number | null
     updatedAt: string
 }
 

@@ -61,6 +61,8 @@ def map_to_etf_quote_fields(quote: dict[str, Any]) -> dict[str, Any]:
         fields["nav"] = float(quote["nav"])
     if quote.get("nav_prdy_vrss"):
         fields["nav_change"] = float(quote["nav_prdy_vrss"])
+    if quote.get("nav_prdy_vrss_sign"):
+        fields["nav_change_sign"] = quote["nav_prdy_vrss_sign"]
     if quote.get("nav_prdy_ctrt"):
         fields["nav_change_rate"] = float(quote["nav_prdy_ctrt"])
     if quote.get("trc_errt"):
@@ -71,6 +73,12 @@ def map_to_etf_quote_fields(quote: dict[str, Any]) -> dict[str, Any]:
         fields["net_asset_total"] = float(quote["etf_ntas_ttam"])
     if quote.get("etf_cnfg_issu_cnt"):
         fields["constituent_count"] = int(quote["etf_cnfg_issu_cnt"])
+    if quote.get("etf_crcl_stcn"):
+        fields["circulating_shares"] = int(quote["etf_crcl_stcn"])
+    if quote.get("frgn_hldn_qty"):
+        fields["foreign_holding_qty"] = int(quote["frgn_hldn_qty"])
+    if quote.get("frgn_hldn_qty_rate"):
+        fields["foreign_holding_rate"] = float(quote["frgn_hldn_qty_rate"])
     return fields
 
 

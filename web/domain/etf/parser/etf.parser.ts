@@ -42,11 +42,15 @@ type RawEtfQuoteRow = {
     year_low_date: string | null
     nav: number | null
     nav_change: number | null
+    nav_change_sign: string | null
     nav_change_rate: number | null
     tracking_error_rate: number | null
     disparity_rate: number | null
     net_asset_total: number | null
     constituent_count: number | null
+    circulating_shares: number | null
+    foreign_holding_qty: number | null
+    foreign_holding_rate: number | null
     updated_at: string
 }
 
@@ -105,11 +109,15 @@ export function parseEtfQuote(raw: RawEtfQuoteRow): EtfQuote {
         yearLowDate: raw.year_low_date,
         nav: raw.nav,
         navChange: raw.nav_change,
+        navChangeSign: raw.nav_change_sign,
         navChangeRate: raw.nav_change_rate,
         trackingErrorRate: raw.tracking_error_rate,
         disparityRate: raw.disparity_rate,
         netAssetTotal: raw.net_asset_total,
         constituentCount: raw.constituent_count,
+        circulatingShares: raw.circulating_shares,
+        foreignHoldingQty: raw.foreign_holding_qty,
+        foreignHoldingRate: raw.foreign_holding_rate,
         updatedAt: raw.updated_at,
     }
 }

@@ -44,11 +44,15 @@ class EtfQuote(BaseModel):
     year_low_date: date | None = None
     nav: float | None = None
     nav_change: float | None = None
+    nav_change_sign: str | None = None
     nav_change_rate: float | None = None
     tracking_error_rate: float | None = None
     disparity_rate: float | None = None
     net_asset_total: float | None = None
     constituent_count: int | None = None
+    circulating_shares: int | None = None
+    foreign_holding_qty: int | None = None
+    foreign_holding_rate: float | None = None
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
