@@ -21,7 +21,9 @@ export async function fetchEtfList(params: EtfListParams): Promise<EtfListResult
 
     let query = supabase
         .from('etf')
-        .select('*', { count: 'exact' })
+        .select('*, etf_quote(current_price, price_change, price_change_rate, net_asset_total)', {
+            count: 'exact',
+        })
         .order('short_code', { ascending: true })
 
     if (search) {

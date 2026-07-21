@@ -1,4 +1,4 @@
-import type { EtfInfo, EtfQuote, EtfListResult, EtfFilterOptions } from '../types'
+import type { EtfInfo, EtfQuote, EtfListItem, EtfListResult, EtfFilterOptions } from '../types'
 
 type RawEtfRow = {
     short_code: string
@@ -19,6 +19,15 @@ type RawEtfRow = {
     total_fee: number | null
     tax_type: string | null
     updated_at: string
+}
+
+type RawEtfListRow = RawEtfRow & {
+    etf_quote: {
+        current_price: number | null
+        price_change: number | null
+        price_change_rate: number | null
+        net_asset_total: number | null
+    } | null
 }
 
 type RawFilterOptionsRow = {
@@ -80,14 +89,26 @@ export function parseEtfInfo(raw: RawEtfRow): EtfInfo {
     }
 }
 
+function parseEtfListItem(raw: RawEtfListRow): EtfListItem {
+    return {
+        ...parseEtfInfo(raw),
+        quote: raw.etf_quote && {
+            currentPrice: raw.etf_quote.current_price,
+            priceChange: raw.etf_quote.price_change,
+            priceChangeRate: raw.etf_quote.price_change_rate,
+            netAssetTotal: raw.etf_quote.net_asset_total,
+        },
+    }
+}
+
 export function parseEtfList(
-    rows: RawEtfRow[],
+    rows: RawEtfListRow[],
     total: number,
     page: number,
     pageSize: number,
 ): EtfListResult {
     return {
-        items: rows.map(parseEtfInfo),
+        items: rows.map(parseEtfListItem),
         total,
         page,
         pageSize,

@@ -24,6 +24,7 @@ export function EtfListSkeleton() {
                             </div>
                             <Skeleton className="h-5 w-12 rounded-full" />
                         </div>
+                        <Skeleton className="mt-2 h-5 w-28" />
                         <div className="mt-3 flex gap-2">
                             <Skeleton className="h-3 w-16" />
                             <Skeleton className="h-3 w-10" />

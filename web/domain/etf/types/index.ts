@@ -61,8 +61,19 @@ export type EtfListParams = {
     pageSize?: number
 }
 
+export type EtfListQuoteSummary = {
+    currentPrice: number | null
+    priceChange: number | null
+    priceChangeRate: number | null
+    netAssetTotal: number | null
+}
+
+export type EtfListItem = EtfInfo & {
+    quote: EtfListQuoteSummary | null
+}
+
 export type EtfListResult = {
-    items: EtfInfo[]
+    items: EtfListItem[]
     total: number
     page: number
     pageSize: number
