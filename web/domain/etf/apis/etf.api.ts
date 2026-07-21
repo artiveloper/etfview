@@ -82,9 +82,10 @@ export async function fetchEtfQuote(shortCode: string): Promise<EtfQuote | null>
 
 export async function fetchEtfFilterOptions(): Promise<EtfFilterOptions> {
     const { data, error } = await supabase
-        .from('etf')
-        .select('base_asset_class, base_market_class, manager, replication_method, tax_type')
+        .from('etf_filter_options')
+        .select('asset_classes, markets, managers, replication_methods, tax_types')
+        .single()
 
     if (error) throw new Error(error.message)
-    return parseEtfFilterOptions(data ?? [])
+    return parseEtfFilterOptions(data)
 }

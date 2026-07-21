@@ -21,12 +21,12 @@ type RawEtfRow = {
     updated_at: string
 }
 
-type RawFilterRow = {
-    base_asset_class: string | null
-    base_market_class: string | null
-    manager: string | null
-    replication_method: string | null
-    tax_type: string | null
+type RawFilterOptionsRow = {
+    asset_classes: string[] | null
+    markets: string[] | null
+    managers: string[] | null
+    replication_methods: string[] | null
+    tax_types: string[] | null
 }
 
 type RawEtfQuoteRow = {
@@ -125,16 +125,12 @@ export function parseEtfQuote(raw: RawEtfQuoteRow): EtfQuote {
     }
 }
 
-function uniqueSorted(values: (string | null)[]): string[] {
-    return [...new Set(values.filter((v): v is string => v !== null))].sort()
-}
-
-export function parseEtfFilterOptions(rows: RawFilterRow[]): EtfFilterOptions {
+export function parseEtfFilterOptions(raw: RawFilterOptionsRow): EtfFilterOptions {
     return {
-        assetClasses: uniqueSorted(rows.map((r) => r.base_asset_class)),
-        markets: uniqueSorted(rows.map((r) => r.base_market_class)),
-        managers: uniqueSorted(rows.map((r) => r.manager)),
-        replicationMethods: uniqueSorted(rows.map((r) => r.replication_method)),
-        taxTypes: uniqueSorted(rows.map((r) => r.tax_type)),
+        assetClasses: raw.asset_classes ?? [],
+        markets: raw.markets ?? [],
+        managers: raw.managers ?? [],
+        replicationMethods: raw.replication_methods ?? [],
+        taxTypes: raw.tax_types ?? [],
     }
 }
