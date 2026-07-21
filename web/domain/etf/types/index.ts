@@ -37,11 +37,15 @@ export type EtfQuote = {
     yearLowDate: string | null
     nav: number | null
     navChange: number | null
+    navChangeSign: string | null
     navChangeRate: number | null
     trackingErrorRate: number | null
     disparityRate: number | null
     netAssetTotal: number | null
     constituentCount: number | null
+    circulatingShares: number | null
+    foreignHoldingQty: number | null
+    foreignHoldingRate: number | null
     updatedAt: string
 }
 
@@ -51,11 +55,25 @@ export type EtfListParams = {
     assetClass: string | null
     market: string | null
     leverage: EtfLeverageType | null
+    manager: string | null
+    replicationMethod: string | null
+    taxType: string | null
     pageSize?: number
 }
 
+export type EtfListQuoteSummary = {
+    currentPrice: number | null
+    priceChange: number | null
+    priceChangeRate: number | null
+    netAssetTotal: number | null
+}
+
+export type EtfListItem = EtfInfo & {
+    quote: EtfListQuoteSummary | null
+}
+
 export type EtfListResult = {
-    items: EtfInfo[]
+    items: EtfListItem[]
     total: number
     page: number
     pageSize: number
@@ -65,4 +83,7 @@ export type EtfListResult = {
 export type EtfFilterOptions = {
     assetClasses: string[]
     markets: string[]
+    managers: string[]
+    replicationMethods: string[]
+    taxTypes: string[]
 }

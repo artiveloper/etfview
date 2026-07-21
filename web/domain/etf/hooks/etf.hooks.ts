@@ -1,11 +1,14 @@
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { etfQueryOptions } from '../query-options/etf.query-options'
+import { useSuspenseQuery, useSuspenseInfiniteQuery } from '@tanstack/react-query'
+import { etfQueryOptions, etfInfiniteListQuery } from '../query-options/etf.query-options'
 import type { EtfListParams } from '../types'
 
-type ListParams = Pick<EtfListParams, 'page' | 'search' | 'assetClass' | 'market' | 'leverage'>
+type ListParams = Pick<
+    EtfListParams,
+    'search' | 'assetClass' | 'market' | 'leverage' | 'manager' | 'replicationMethod' | 'taxType'
+>
 
 export function useEtfList(params: ListParams) {
-    return useSuspenseQuery(etfQueryOptions.list(params))
+    return useSuspenseInfiniteQuery(etfInfiniteListQuery(params))
 }
 
 export function useEtfFilterOptions() {

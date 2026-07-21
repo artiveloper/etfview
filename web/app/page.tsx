@@ -8,11 +8,13 @@ import { EtfFilters } from '@/components/etf/etf-filters'
 import { EtfListSkeleton, EtfFiltersSkeleton } from '@/components/etf/etf-list-skeleton'
 
 type SearchParams = {
-    page?: string
     search?: string
     assetClass?: string
     market?: string
     leverage?: string
+    manager?: string
+    replicationMethod?: string
+    taxType?: string
 }
 
 type Props = {
@@ -26,15 +28,17 @@ function parseLeverage(value: string | undefined) {
 
 export default async function EtfPage({ searchParams }: Props) {
     const params = await searchParams
-    const page = params.page ? Math.max(1, Number(params.page)) : 1
     const search = params.search ?? ''
     const assetClass = params.assetClass ?? null
     const market = params.market ?? null
     const leverage = parseLeverage(params.leverage)
+    const manager = params.manager ?? null
+    const replicationMethod = params.replicationMethod ?? null
+    const taxType = params.taxType ?? null
 
     const state = await runPrefetch(
         etfPrefetch.filterOptions(),
-        etfPrefetch.list({ page, search, assetClass, market, leverage }),
+        etfPrefetch.list({ search, assetClass, market, leverage, manager, replicationMethod, taxType }),
     )
 
     return (

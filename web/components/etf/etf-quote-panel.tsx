@@ -12,11 +12,19 @@ function formatNumber(value: number | null) {
     return value.toLocaleString('ko-KR')
 }
 
-function QuoteRow({ label, value }: { label: string; value: string }) {
+function QuoteRow({
+    label,
+    value,
+    valueClassName = '',
+}: {
+    label: string
+    value: string
+    valueClassName?: string
+}) {
     return (
         <div className="flex items-center justify-between border-b py-2 text-sm last:border-b-0">
             <span className="text-muted-foreground">{label}</span>
-            <span className="font-medium">{value}</span>
+            <span className={`font-medium ${valueClassName}`}>{value}</span>
         </div>
     )
 }
@@ -37,6 +45,14 @@ export function EtfQuotePanel({ shortCode }: Props) {
     const isDown = quote.priceChange !== null && quote.priceChange < 0
     const isUp = quote.priceChange !== null && quote.priceChange > 0
     const changeColor = isDown ? 'text-blue-600' : isUp ? 'text-red-600' : 'text-muted-foreground'
+
+    const isNavDown = quote.navChange !== null && quote.navChange < 0
+    const isNavUp = quote.navChange !== null && quote.navChange > 0
+    const navChangeColor = isNavDown ? 'text-blue-600' : isNavUp ? 'text-red-600' : 'text-muted-foreground'
+    const navValue =
+        quote.navChange !== null && quote.navChangeRate !== null
+            ? `${formatNumber(quote.nav)} (${quote.navChange > 0 ? '+' : ''}${formatNumber(quote.navChange)}, ${quote.navChangeRate.toFixed(2)}%)`
+            : formatNumber(quote.nav)
 
     return (
         <Card className="gap-0 rounded-lg border py-0 shadow-none ring-0">
@@ -65,7 +81,7 @@ export function EtfQuotePanel({ shortCode }: Props) {
                         label="연중 최저가"
                         value={`${formatNumber(quote.yearLowPrice)}${quote.yearLowDate ? ` (${quote.yearLowDate})` : ''}`}
                     />
-                    <QuoteRow label="NAV" value={formatNumber(quote.nav)} />
+                    <QuoteRow label="NAV" value={navValue} valueClassName={navChangeColor} />
                     <QuoteRow
                         label="추적오차율"
                         value={quote.trackingErrorRate !== null ? `${quote.trackingErrorRate.toFixed(2)}%` : '-'}
@@ -76,6 +92,12 @@ export function EtfQuotePanel({ shortCode }: Props) {
                     />
                     <QuoteRow label="순자산총액" value={formatNumber(quote.netAssetTotal)} />
                     <QuoteRow label="구성종목수" value={formatNumber(quote.constituentCount)} />
+                    <QuoteRow label="유통좌수" value={formatNumber(quote.circulatingShares)} />
+                    <QuoteRow label="외국인 보유수량" value={formatNumber(quote.foreignHoldingQty)} />
+                    <QuoteRow
+                        label="외국인 보유비중"
+                        value={quote.foreignHoldingRate !== null ? `${quote.foreignHoldingRate.toFixed(2)}%` : '-'}
+                    />
                 </div>
             </CardContent>
         </Card>

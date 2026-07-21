@@ -1,27 +1,60 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { useQueryStates } from 'nuqs'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useEtfList } from '@/domain/etf'
 import { etfSearchParams } from '@/domain/etf/params'
 import { EtfCard } from './etf-card'
 
-export function EtfList() {
-    const [{ page, search, assetClass, market, leverage }, setParams] = useQueryStates(etfSearchParams)
-    const { data } = useEtfList({ page, search, assetClass, market, leverage })
+function useLoadMoreOnVisible(onVisible: () => void, enabled: boolean) {
+    const ref = useRef<HTMLDivElement>(null)
 
-    const handlePrev = () => setParams({ page: page - 1 })
-    const handleNext = () => setParams({ page: page + 1 })
+    useEffect(() => {
+        const el = ref.current
+        if (!enabled || !el) return
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0]?.isIntersecting) onVisible()
+            },
+            { rootMargin: '400px' },
+        )
+        observer.observe(el)
+        return () => observer.disconnect()
+    }, [onVisible, enabled])
+
+    return ref
+}
+
+export function EtfList() {
+    const [{ search, assetClass, market, leverage, manager, replicationMethod, taxType }] =
+        useQueryStates(etfSearchParams)
+    const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useEtfList({
+        search,
+        assetClass,
+        market,
+        leverage,
+        manager,
+        replicationMethod,
+        taxType,
+    })
+
+    const items = data.pages.flatMap((p) => p.items)
+    const total = data.pages[0].total
+
+    const sentinelRef = useLoadMoreOnVisible(() => {
+        if (!isFetchingNextPage) fetchNextPage()
+    }, hasNextPage)
 
     return (
         <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-                총 <span className="font-medium text-foreground">{data.total.toLocaleString()}</span>개
+                총 <span className="font-medium text-foreground">{total.toLocaleString()}</span>개
             </p>
 
-            {data.items.length === 0 ? (
+            {items.length === 0 ? (
                 <Card className="gap-0 rounded-lg border py-0 shadow-none ring-0">
                     <CardContent className="flex min-h-48 flex-col items-center justify-center p-16 text-center">
                         <p className="text-base font-medium">검색 결과가 없습니다</p>
@@ -32,40 +65,23 @@ export function EtfList() {
                 </Card>
             ) : (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {data.items.map((etf) => (
+                    {items.map((etf) => (
                         <EtfCard key={etf.shortCode} etf={etf} />
                     ))}
                 </div>
             )}
 
-            {data.totalPages > 1 && (
-                <div className="flex items-center justify-center gap-4 pt-2">
-                    <Button
-                        variant="outline"
-                        size="icon-lg"
-                        onClick={handlePrev}
-                        disabled={page <= 1}
-                        aria-label="이전 페이지"
-                        className="size-11"
-                    >
-                        <ChevronLeft className="size-5" />
-                    </Button>
-
-                    <span className="min-w-20 text-center text-sm">
-                        <span className="font-medium">{page}</span>
-                        <span className="text-muted-foreground"> / {data.totalPages}</span>
-                    </span>
-
-                    <Button
-                        variant="outline"
-                        size="icon-lg"
-                        onClick={handleNext}
-                        disabled={page >= data.totalPages}
-                        aria-label="다음 페이지"
-                        className="size-11"
-                    >
-                        <ChevronRight className="size-5" />
-                    </Button>
+            {hasNextPage && (
+                <div ref={sentinelRef} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {isFetchingNextPage &&
+                        Array.from({ length: 3 }).map((_, i) => (
+                            <Card key={i} className="gap-0 rounded-lg border py-0 shadow-none ring-0">
+                                <CardContent className="p-4">
+                                    <Skeleton className="h-10 w-3/4" />
+                                    <Skeleton className="mt-2 h-5 w-28" />
+                                </CardContent>
+                            </Card>
+                        ))}
                 </div>
             )}
         </div>

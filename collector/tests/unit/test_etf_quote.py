@@ -1,29 +1,6 @@
 from datetime import date
 
-from etf_collector.infra.kis.etf_quote import map_to_etf_info_fields, map_to_etf_quote_fields
-
-
-def test_maps_known_fields() -> None:
-    quote = {
-        "mbcr_name": "삼성자산운용(ETF)",
-        "etf_cu_unit_scrt_cnt": "50000",
-        "etf_trc_ert_mltp": "1.00",
-        "etf_div_name": "수익증권형",
-    }
-
-    fields = map_to_etf_info_fields(quote)
-
-    assert fields == {
-        "manager": "삼성자산운용(ETF)",
-        "creation_unit_quantity": 50000,
-        "tracking_multiplier": "1.00",
-        "replication_method": "수익증권형",
-    }
-
-
-def test_ignores_missing_fields() -> None:
-    fields = map_to_etf_info_fields({})
-    assert fields == {}
+from etf_collector.infra.kis.etf_quote import map_to_etf_quote_fields
 
 
 def test_maps_quote_fields() -> None:
@@ -42,11 +19,15 @@ def test_maps_quote_fields() -> None:
         "dryy_lwpr_date": "20260102",
         "nav": "35010.50",
         "nav_prdy_vrss": "-140",
+        "nav_prdy_vrss_sign": "5",
         "nav_prdy_ctrt": "-0.40",
         "trc_errt": "0.05",
         "dprt": "-0.03",
         "etf_ntas_ttam": "1234567890",
         "etf_cnfg_issu_cnt": "200",
+        "etf_crcl_stcn": "226100000",
+        "frgn_hldn_qty": "52396766",
+        "frgn_hldn_qty_rate": "23.17",
     }
 
     fields = map_to_etf_quote_fields(quote)
@@ -66,11 +47,15 @@ def test_maps_quote_fields() -> None:
         "year_low_date": date(2026, 1, 2),
         "nav": 35010.50,
         "nav_change": -140.0,
+        "nav_change_sign": "5",
         "nav_change_rate": -0.40,
         "tracking_error_rate": 0.05,
         "disparity_rate": -0.03,
         "net_asset_total": 1234567890.0,
         "constituent_count": 200,
+        "circulating_shares": 226100000,
+        "foreign_holding_qty": 52396766,
+        "foreign_holding_rate": 23.17,
     }
 
 

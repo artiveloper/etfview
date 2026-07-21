@@ -3,17 +3,9 @@ import { Card, CardContent } from '@/components/ui/card'
 
 export function EtfFiltersSkeleton() {
     return (
-        <div className="space-y-4 rounded-lg border bg-card p-4">
-            {[1, 2, 3].map((i) => (
-                <div key={i} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-x-3">
-                    <Skeleton className="h-4 w-14" />
-                    <div className="flex flex-wrap gap-1.5">
-                        <Skeleton className="h-11 w-12 rounded-full" />
-                        <Skeleton className="h-11 w-20 rounded-full" />
-                        <Skeleton className="h-11 w-16 rounded-full" />
-                        <Skeleton className="h-11 w-18 rounded-full" />
-                    </div>
-                </div>
+        <div className="flex gap-2 overflow-x-auto">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Skeleton key={i} className="h-9 w-40 shrink-0" />
             ))}
         </div>
     )
@@ -32,6 +24,7 @@ export function EtfListSkeleton() {
                             </div>
                             <Skeleton className="h-5 w-12 rounded-full" />
                         </div>
+                        <Skeleton className="mt-2 h-5 w-28" />
                         <div className="mt-3 flex gap-2">
                             <Skeleton className="h-3 w-16" />
                             <Skeleton className="h-3 w-10" />

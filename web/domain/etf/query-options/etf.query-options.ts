@@ -1,15 +1,32 @@
+import { infiniteQueryOptions } from '@tanstack/react-query'
 import { etfQueryKeys } from '../query-keys/etf.query-keys'
-import { fetchEtfList, fetchEtfFilterOptions, fetchEtfDetail, fetchEtfQuote } from '../apis/etf.api'
-import type { EtfListParams } from '../types'
+import {
+    fetchEtfList,
+    fetchEtfFilterOptions,
+    fetchEtfDetail,
+    fetchEtfQuote,
+    DEFAULT_PAGE_SIZE,
+} from '../apis/etf.api'
+import type { EtfListParams, EtfListResult } from '../types'
 
-type ListParams = Pick<EtfListParams, 'page' | 'search' | 'assetClass' | 'market' | 'leverage'>
+type ListParams = Pick<
+    EtfListParams,
+    'search' | 'assetClass' | 'market' | 'leverage' | 'manager' | 'replicationMethod' | 'taxType'
+>
+
+// infiniteQueryOptions()가 queryOptions()의 infinite 전용 버전이다 —
+// pageParam/getNextPageParam까지 타입 추론되고, hooks(client)·prefetch(server)가 그대로 공유한다.
+export function etfInfiniteListQuery(params: ListParams) {
+    return infiniteQueryOptions({
+        queryKey: etfQueryKeys.list(params),
+        queryFn: ({ pageParam }) => fetchEtfList({ ...params, page: pageParam, pageSize: DEFAULT_PAGE_SIZE }),
+        initialPageParam: 1,
+        getNextPageParam: (lastPage: EtfListResult) =>
+            lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
+    })
+}
 
 export const etfQueryOptions = {
-    list: (params: ListParams) => ({
-        queryKey: etfQueryKeys.list(params),
-        queryFn: () => fetchEtfList({ ...params, pageSize: 20 }),
-    }),
-
     filterOptions: () => ({
         queryKey: etfQueryKeys.filterOptions,
         queryFn: fetchEtfFilterOptions,

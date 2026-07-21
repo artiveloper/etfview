@@ -66,3 +66,30 @@ def test_fetch_all_paginates_past_page_size() -> None:
     assert len(rows) == 1001
     range_ = supabase.table.return_value.select.return_value.range
     assert range_.call_args_list == [call(0, 999), call(1000, 1999)]
+
+
+def test_mark_delisted_updates_only_rows_without_existing_delisted_at() -> None:
+    supabase = MagicMock()
+    repository = EtfInfoRepository(supabase)
+    chain = supabase.table.return_value.update.return_value.in_.return_value.is_
+    chain.return_value.execute.return_value = MagicMock(data=[{"short_code": "0021C0"}])
+
+    count = repository.mark_delisted(["0021C0"], date(2026, 7, 22))
+
+    assert count == 1
+    supabase.table.assert_called_once_with("etf")
+    supabase.table.return_value.update.assert_called_once_with({"delisted_at": "2026-07-22"})
+    supabase.table.return_value.update.return_value.in_.assert_called_once_with(
+        "short_code", ["0021C0"]
+    )
+    chain.assert_called_once_with("delisted_at", "null")
+
+
+def test_mark_delisted_returns_zero_for_empty_list() -> None:
+    supabase = MagicMock()
+    repository = EtfInfoRepository(supabase)
+
+    count = repository.mark_delisted([], date(2026, 7, 22))
+
+    assert count == 0
+    supabase.table.assert_not_called()

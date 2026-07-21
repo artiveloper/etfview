@@ -17,7 +17,7 @@ export function EtfSearch() {
             <Input
                 type="search"
                 value={search}
-                onChange={(e) => setParams({ search: e.target.value || null, page: null })}
+                onChange={(e) => setParams({ search: e.target.value || null })}
                 placeholder="ETF 이름으로 검색"
                 className="h-11 pl-9"
             />

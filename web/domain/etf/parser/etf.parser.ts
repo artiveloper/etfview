@@ -1,4 +1,4 @@
-import type { EtfInfo, EtfQuote, EtfListResult, EtfFilterOptions } from '../types'
+import type { EtfInfo, EtfQuote, EtfListItem, EtfListResult, EtfFilterOptions } from '../types'
 
 type RawEtfRow = {
     short_code: string
@@ -21,9 +21,21 @@ type RawEtfRow = {
     updated_at: string
 }
 
-type RawFilterRow = {
-    base_asset_class: string | null
-    base_market_class: string | null
+type RawEtfListRow = RawEtfRow & {
+    etf_quote: {
+        current_price: number | null
+        price_change: number | null
+        price_change_rate: number | null
+        net_asset_total: number | null
+    } | null
+}
+
+type RawFilterOptionsRow = {
+    asset_classes: string[] | null
+    markets: string[] | null
+    managers: string[] | null
+    replication_methods: string[] | null
+    tax_types: string[] | null
 }
 
 type RawEtfQuoteRow = {
@@ -42,11 +54,15 @@ type RawEtfQuoteRow = {
     year_low_date: string | null
     nav: number | null
     nav_change: number | null
+    nav_change_sign: string | null
     nav_change_rate: number | null
     tracking_error_rate: number | null
     disparity_rate: number | null
     net_asset_total: number | null
     constituent_count: number | null
+    circulating_shares: number | null
+    foreign_holding_qty: number | null
+    foreign_holding_rate: number | null
     updated_at: string
 }
 
@@ -73,14 +89,26 @@ export function parseEtfInfo(raw: RawEtfRow): EtfInfo {
     }
 }
 
+function parseEtfListItem(raw: RawEtfListRow): EtfListItem {
+    return {
+        ...parseEtfInfo(raw),
+        quote: raw.etf_quote && {
+            currentPrice: raw.etf_quote.current_price,
+            priceChange: raw.etf_quote.price_change,
+            priceChangeRate: raw.etf_quote.price_change_rate,
+            netAssetTotal: raw.etf_quote.net_asset_total,
+        },
+    }
+}
+
 export function parseEtfList(
-    rows: RawEtfRow[],
+    rows: RawEtfListRow[],
     total: number,
     page: number,
     pageSize: number,
 ): EtfListResult {
     return {
-        items: rows.map(parseEtfInfo),
+        items: rows.map(parseEtfListItem),
         total,
         page,
         pageSize,
@@ -105,21 +133,25 @@ export function parseEtfQuote(raw: RawEtfQuoteRow): EtfQuote {
         yearLowDate: raw.year_low_date,
         nav: raw.nav,
         navChange: raw.nav_change,
+        navChangeSign: raw.nav_change_sign,
         navChangeRate: raw.nav_change_rate,
         trackingErrorRate: raw.tracking_error_rate,
         disparityRate: raw.disparity_rate,
         netAssetTotal: raw.net_asset_total,
         constituentCount: raw.constituent_count,
+        circulatingShares: raw.circulating_shares,
+        foreignHoldingQty: raw.foreign_holding_qty,
+        foreignHoldingRate: raw.foreign_holding_rate,
         updatedAt: raw.updated_at,
     }
 }
 
-export function parseEtfFilterOptions(rows: RawFilterRow[]): EtfFilterOptions {
-    const assetClasses = [
-        ...new Set(rows.map((r) => r.base_asset_class).filter((v): v is string => v !== null)),
-    ].sort()
-    const markets = [
-        ...new Set(rows.map((r) => r.base_market_class).filter((v): v is string => v !== null)),
-    ].sort()
-    return { assetClasses, markets }
+export function parseEtfFilterOptions(raw: RawFilterOptionsRow): EtfFilterOptions {
+    return {
+        assetClasses: raw.asset_classes ?? [],
+        markets: raw.markets ?? [],
+        managers: raw.managers ?? [],
+        replicationMethods: raw.replication_methods ?? [],
+        taxTypes: raw.tax_types ?? [],
+    }
 }
