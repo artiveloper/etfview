@@ -1,7 +1,17 @@
 'use client'
 
 import { useQueryStates } from 'nuqs'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+    Select,
+    SelectGroup,
+    SelectLabel,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
 import { useEtfFilterOptions } from '@/domain/etf'
 import { etfSearchParams, LEVERAGE_VALUES } from '@/domain/etf/params'
 import type { LeverageType } from '@/domain/etf/params'
@@ -12,74 +22,124 @@ const LEVERAGE_LABELS: Record<LeverageType, string> = {
     inverse: '인버스',
 }
 
-const chipClass =
-    'h-11 rounded-full px-4 text-sm aria-pressed:bg-foreground aria-pressed:text-background data-[state=on]:bg-foreground data-[state=on]:text-background'
+function FilterRow({
+    label,
+    value,
+    onChange,
+    options,
+}: {
+    label: string
+    value: string | null
+    onChange: (value: string | null) => void
+    options: { value: string; label: string }[]
+}) {
+    const items = [{ value: null, label }, ...options]
+
+    return (
+
+    <div className="flex shrink-0 items-center gap-0.5">
+      <Select items={items} value={value} onValueChange={onChange}>
+        <SelectTrigger className="shrink-0">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="w-max min-w-(--anchor-width) max-w-72">
+          <SelectGroup>
+            <SelectLabel>{label}</SelectLabel>
+            {items.map((item) => (
+              <SelectItem key={item.value ?? 'all'} value={item.value}>
+                  {item.label}
+              </SelectItem>
+          ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      {value !== null && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          aria-label={`${label} 필터 해제`}
+          onClick={() => onChange(null)}
+        >
+          <X />
+        </Button>
+      )}
+    </div>
+    )
+}
 
 export function EtfFilters() {
     const { data: filterOptions } = useEtfFilterOptions()
-    const [{ assetClass, market, leverage }, setParams] = useQueryStates(etfSearchParams)
+    const [{ assetClass, market, leverage, manager, replicationMethod, taxType }, setParams] =
+        useQueryStates(etfSearchParams)
+
+    const hasActiveFilter =
+        assetClass !== null ||
+        market !== null ||
+        leverage !== null ||
+        manager !== null ||
+        replicationMethod !== null ||
+        taxType !== null
 
     return (
-        <div className="space-y-4 rounded-lg border bg-card p-4">
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3">
-                <span className="text-sm font-medium text-muted-foreground sm:w-14">기초자산</span>
-                <ToggleGroup
-                    type="single"
-                    variant="outline"
-                    value={assetClass ?? 'all'}
-                    onValueChange={(v) =>
-                        setParams({ assetClass: v && v !== 'all' ? v : null, page: null })
+        <div className="flex items-center gap-2 overflow-x-auto">
+            <FilterRow
+                label="기초자산"
+                value={assetClass}
+                onChange={(v) => setParams({ assetClass: v, page: null })}
+                options={filterOptions.assetClasses.map((cls) => ({ value: cls, label: cls }))}
+            />
+            <FilterRow
+                label="시장"
+                value={market}
+                onChange={(v) => setParams({ market: v, page: null })}
+                options={filterOptions.markets.map((m) => ({ value: m, label: m }))}
+            />
+            <FilterRow
+                label="유형"
+                value={leverage}
+                onChange={(v) => setParams({ leverage: v as LeverageType | null, page: null })}
+                options={LEVERAGE_VALUES.map((v) => ({ value: v, label: LEVERAGE_LABELS[v] }))}
+            />
+            <FilterRow
+                label="운용사"
+                value={manager}
+                onChange={(v) => setParams({ manager: v, page: null })}
+                options={filterOptions.managers.map((m) => ({ value: m, label: m }))}
+            />
+            <FilterRow
+                label="복제방법"
+                value={replicationMethod}
+                onChange={(v) => setParams({ replicationMethod: v, page: null })}
+                options={filterOptions.replicationMethods.map((m) => ({ value: m, label: m }))}
+            />
+            <FilterRow
+                label="과세유형"
+                value={taxType}
+                onChange={(v) => setParams({ taxType: v, page: null })}
+                options={filterOptions.taxTypes.map((t) => ({ value: t, label: t }))}
+            />
+            {hasActiveFilter && (
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="shrink-0"
+                    onClick={() =>
+                        setParams({
+                            assetClass: null,
+                            market: null,
+                            leverage: null,
+                            manager: null,
+                            replicationMethod: null,
+                            taxType: null,
+                            page: null,
+                        })
                     }
-                    className="flex-wrap justify-start gap-1.5"
                 >
-                    <ToggleGroupItem value="all" className={chipClass}>전체</ToggleGroupItem>
-                    {filterOptions.assetClasses.map((cls) => (
-                        <ToggleGroupItem key={cls} value={cls} className={chipClass}>
-                            {cls}
-                        </ToggleGroupItem>
-                    ))}
-                </ToggleGroup>
-            </div>
-
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3">
-                <span className="text-sm font-medium text-muted-foreground sm:w-14">시장</span>
-                <ToggleGroup
-                    type="single"
-                    variant="outline"
-                    value={market ?? 'all'}
-                    onValueChange={(v) =>
-                        setParams({ market: v && v !== 'all' ? v : null, page: null })
-                    }
-                    className="flex-wrap justify-start gap-1.5"
-                >
-                    <ToggleGroupItem value="all" className={chipClass}>전체</ToggleGroupItem>
-                    {filterOptions.markets.map((m) => (
-                        <ToggleGroupItem key={m} value={m} className={chipClass}>
-                            {m}
-                        </ToggleGroupItem>
-                    ))}
-                </ToggleGroup>
-            </div>
-
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3">
-                <span className="text-sm font-medium text-muted-foreground sm:w-14">유형</span>
-                <ToggleGroup
-                    type="single"
-                    variant="outline"
-                    value={leverage ?? 'all'}
-                    onValueChange={(v) =>
-                        setParams({ leverage: v && v !== 'all' ? (v as LeverageType) : null, page: null })
-                    }
-                    className="flex-wrap justify-start gap-1.5"
-                >
-                    <ToggleGroupItem value="all" className={chipClass}>전체</ToggleGroupItem>
-                    {LEVERAGE_VALUES.map((v) => (
-                        <ToggleGroupItem key={v} value={v} className={chipClass}>
-                            {LEVERAGE_LABELS[v]}
-                        </ToggleGroupItem>
-                    ))}
-                </ToggleGroup>
-            </div>
+                    초기화
+                </Button>
+            )}
         </div>
     )
 }

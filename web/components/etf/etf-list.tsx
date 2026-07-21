@@ -9,8 +9,9 @@ import { etfSearchParams } from '@/domain/etf/params'
 import { EtfCard } from './etf-card'
 
 export function EtfList() {
-    const [{ page, search, assetClass, market, leverage }, setParams] = useQueryStates(etfSearchParams)
-    const { data } = useEtfList({ page, search, assetClass, market, leverage })
+    const [{ page, search, assetClass, market, leverage, manager, replicationMethod, taxType }, setParams] =
+        useQueryStates(etfSearchParams)
+    const { data } = useEtfList({ page, search, assetClass, market, leverage, manager, replicationMethod, taxType })
 
     const handlePrev = () => setParams({ page: page - 1 })
     const handleNext = () => setParams({ page: page + 1 })

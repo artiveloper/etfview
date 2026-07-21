@@ -55,6 +55,9 @@ export type EtfListParams = {
     assetClass: string | null
     market: string | null
     leverage: EtfLeverageType | null
+    manager: string | null
+    replicationMethod: string | null
+    taxType: string | null
     pageSize?: number
 }
 
@@ -69,4 +72,7 @@ export type EtfListResult = {
 export type EtfFilterOptions = {
     assetClasses: string[]
     markets: string[]
+    managers: string[]
+    replicationMethods: string[]
+    taxTypes: string[]
 }

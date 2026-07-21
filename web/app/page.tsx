@@ -13,6 +13,9 @@ type SearchParams = {
     assetClass?: string
     market?: string
     leverage?: string
+    manager?: string
+    replicationMethod?: string
+    taxType?: string
 }
 
 type Props = {
@@ -31,10 +34,13 @@ export default async function EtfPage({ searchParams }: Props) {
     const assetClass = params.assetClass ?? null
     const market = params.market ?? null
     const leverage = parseLeverage(params.leverage)
+    const manager = params.manager ?? null
+    const replicationMethod = params.replicationMethod ?? null
+    const taxType = params.taxType ?? null
 
     const state = await runPrefetch(
         etfPrefetch.filterOptions(),
-        etfPrefetch.list({ page, search, assetClass, market, leverage }),
+        etfPrefetch.list({ page, search, assetClass, market, leverage, manager, replicationMethod, taxType }),
     )
 
     return (

@@ -11,4 +11,7 @@ export const etfSearchParams = {
     assetClass: parseAsString,
     market: parseAsString,
     leverage: parseAsStringLiteral(LEVERAGE_VALUES),
+    manager: parseAsString,
+    replicationMethod: parseAsString,
+    taxType: parseAsString,
 }

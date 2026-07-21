@@ -5,7 +5,17 @@ import type { EtfListParams, EtfListResult, EtfFilterOptions, EtfInfo, EtfQuote 
 const DEFAULT_PAGE_SIZE = 20
 
 export async function fetchEtfList(params: EtfListParams): Promise<EtfListResult> {
-    const { page, search, assetClass, market, leverage, pageSize = DEFAULT_PAGE_SIZE } = params
+    const {
+        page,
+        search,
+        assetClass,
+        market,
+        leverage,
+        manager,
+        replicationMethod,
+        taxType,
+        pageSize = DEFAULT_PAGE_SIZE,
+    } = params
     const from = (page - 1) * pageSize
     const to = from + pageSize - 1
 
@@ -22,6 +32,15 @@ export async function fetchEtfList(params: EtfListParams): Promise<EtfListResult
     }
     if (market) {
         query = query.eq('base_market_class', market)
+    }
+    if (manager) {
+        query = query.eq('manager', manager)
+    }
+    if (replicationMethod) {
+        query = query.eq('replication_method', replicationMethod)
+    }
+    if (taxType) {
+        query = query.eq('tax_type', taxType)
     }
     if (leverage === 'inverse') {
         query = query.ilike('tracking_multiplier', '%인버스%')
@@ -64,7 +83,7 @@ export async function fetchEtfQuote(shortCode: string): Promise<EtfQuote | null>
 export async function fetchEtfFilterOptions(): Promise<EtfFilterOptions> {
     const { data, error } = await supabase
         .from('etf')
-        .select('base_asset_class, base_market_class')
+        .select('base_asset_class, base_market_class, manager, replication_method, tax_type')
 
     if (error) throw new Error(error.message)
     return parseEtfFilterOptions(data ?? [])

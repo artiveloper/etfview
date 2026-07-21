@@ -2,7 +2,10 @@ import { etfQueryKeys } from '../query-keys/etf.query-keys'
 import { fetchEtfList, fetchEtfFilterOptions, fetchEtfDetail, fetchEtfQuote } from '../apis/etf.api'
 import type { EtfListParams } from '../types'
 
-type ListParams = Pick<EtfListParams, 'page' | 'search' | 'assetClass' | 'market' | 'leverage'>
+type ListParams = Pick<
+    EtfListParams,
+    'page' | 'search' | 'assetClass' | 'market' | 'leverage' | 'manager' | 'replicationMethod' | 'taxType'
+>
 
 export const etfQueryOptions = {
     list: (params: ListParams) => ({
