@@ -27,7 +27,9 @@ export async function fetchEtfList(params: EtfListParams): Promise<EtfListResult
             count: 'exact',
         })
         .is('delisted_at', null)
-        .order('net_asset_total', { referencedTable: 'etf_quote', ascending: false, nullsFirst: false })
+        // referencedTable 옵션은 embed 내부 정렬만 할 뿐 부모(etf) 정렬에는 적용되지 않아
+        // PostgREST의 embed 컬럼 dot-path 문법을 컬럼명으로 직접 넘긴다.
+        .order('etf_quote(net_asset_total)', { ascending: false, nullsFirst: false })
         .order('short_code', { ascending: true })
 
     if (search) {
