@@ -17,11 +17,16 @@ from etf_collector.infra.supabase.etf_quote_repository import EtfQuoteRepository
 from etf_collector.infra.supabase.etf_repository import EtfInfoRepository
 from etf_collector.infra.supabase.job_log_repository import JobExecutionLogRepository
 from etf_collector.jobs.backfill_etf_price import backfill_etf_price
-from etf_collector.jobs.pipeline import run_pipeline
+from etf_collector.jobs.pipeline import run_daily_close, run_daily_open, run_intraday_price
 from etf_collector.logging_config import configure_logging
 from supabase import Client
 
 logger = logging.getLogger(__name__)
+
+# 장중 실행이 KIS 지연 등으로 30분 창을 넘기면 다음 실행과 겹칠 수 있어 단일 인스턴스로
+# 제한하고, 지연 실행은 grace 안에서만 따라잡게 한다(누적 misfire 폭주 방지).
+_MAX_INSTANCES = 1
+_MISFIRE_GRACE_SECONDS = 300
 
 
 def _build_repositories(
@@ -42,7 +47,8 @@ def _build_repositories(
     )
 
 
-async def _run_once() -> None:
+async def _run_daily_once() -> None:
+    """개장(유니버스) → 마감(확정 시세·스냅샷·구성종목)을 한 번에 실행한다(e2e 검증용)."""
     settings = get_settings()
     supabase = get_supabase_client(settings)
     (
@@ -52,7 +58,8 @@ async def _run_once() -> None:
         constituent_repository,
         job_log_repository,
     ) = _build_repositories(supabase)
-    await run_pipeline(
+    await run_daily_open(settings, supabase, etf_repository, job_log_repository)
+    await run_daily_close(
         settings,
         supabase,
         etf_repository,
@@ -60,6 +67,16 @@ async def _run_once() -> None:
         price_repository,
         constituent_repository,
         job_log_repository,
+    )
+
+
+async def _run_intraday_once() -> None:
+    """장중 일별 시세 갱신을 1회 실행한다(오늘 미완성 봉 확인용)."""
+    settings = get_settings()
+    supabase = get_supabase_client(settings)
+    etf_repository, _, price_repository, _, job_log_repository = _build_repositories(supabase)
+    await run_intraday_price(
+        settings, supabase, etf_repository, price_repository, job_log_repository
     )
 
 
@@ -98,11 +115,33 @@ def _run_scheduler() -> None:
 
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
-        run_pipeline,
+        run_daily_open,
         trigger="cron",
-        day_of_week=settings.sync_cron_day_of_week,
-        hour=settings.sync_cron_hour,
-        minute=settings.sync_cron_minute,
+        day_of_week=settings.open_cron_day_of_week,
+        hour=settings.open_cron_hour,
+        minute=settings.open_cron_minute,
+        max_instances=_MAX_INSTANCES,
+        misfire_grace_time=_MISFIRE_GRACE_SECONDS,
+        args=[settings, supabase, etf_repository, job_log_repository],
+    )
+    scheduler.add_job(
+        run_intraday_price,
+        trigger="cron",
+        day_of_week=settings.intraday_cron_day_of_week,
+        hour=settings.intraday_cron_hour,
+        minute=settings.intraday_cron_minute,
+        max_instances=_MAX_INSTANCES,
+        misfire_grace_time=_MISFIRE_GRACE_SECONDS,
+        args=[settings, supabase, etf_repository, price_repository, job_log_repository],
+    )
+    scheduler.add_job(
+        run_daily_close,
+        trigger="cron",
+        day_of_week=settings.close_cron_day_of_week,
+        hour=settings.close_cron_hour,
+        minute=settings.close_cron_minute,
+        max_instances=_MAX_INSTANCES,
+        misfire_grace_time=_MISFIRE_GRACE_SECONDS,
         args=[
             settings,
             supabase,
@@ -115,10 +154,16 @@ def _run_scheduler() -> None:
     )
     scheduler.start()
     logger.info(
-        "스케줄 등록 완료: day_of_week=%s hour=%d minute=%d",
-        settings.sync_cron_day_of_week,
-        settings.sync_cron_hour,
-        settings.sync_cron_minute,
+        "스케줄 등록 완료: open=%s %s:%s / intraday=%s %s:%s / close=%s %s:%s",
+        settings.open_cron_day_of_week,
+        settings.open_cron_hour,
+        settings.open_cron_minute,
+        settings.intraday_cron_day_of_week,
+        settings.intraday_cron_hour,
+        settings.intraday_cron_minute,
+        settings.close_cron_day_of_week,
+        settings.close_cron_hour,
+        settings.close_cron_minute,
     )
     asyncio.get_event_loop().run_forever()
 
@@ -127,7 +172,14 @@ def run() -> None:
     configure_logging()
     parser = argparse.ArgumentParser(description="ETF 정보 수집 스케줄러")
     parser.add_argument(
-        "--once", action="store_true", help="스케줄을 기다리지 않고 즉시 1회 실행 후 종료"
+        "--once",
+        action="store_true",
+        help="개장→마감 일일 사이클을 즉시 1회 실행 후 종료(장중 시세 제외)",
+    )
+    parser.add_argument(
+        "--intraday-once",
+        action="store_true",
+        help="장중 일별 시세 갱신을 즉시 1회 실행 후 종료",
     )
     parser.add_argument("--revoke", action="store_true", help="캐시된 KIS 접근토큰을 폐기하고 종료")
     parser.add_argument(
@@ -147,8 +199,10 @@ def run() -> None:
         asyncio.run(_run_revoke())
     elif args.backfill_price:
         asyncio.run(_run_backfill_price(args.backfill_days))
+    elif args.intraday_once:
+        asyncio.run(_run_intraday_once())
     elif args.once:
-        asyncio.run(_run_once())
+        asyncio.run(_run_daily_once())
     else:
         _run_scheduler()
 

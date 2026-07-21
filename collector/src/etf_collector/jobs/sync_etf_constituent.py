@@ -1,8 +1,8 @@
-"""3단계: ETF 구성종목시세 API로 ETF별 보유종목 현황을 upsert한다.
+"""3단계: ETF 구성종목시세 API로 종목별 보유 바스켓을 조회해 upsert한다.
 
-조회 대상 ETF 목록은 별도 마스터파일이 아니라 이미 수집된 Supabase etf
-테이블(EtfInfoRepository.fetch_all)에서 가져온다 — 이 API는 종목코드 하나당
-1회 호출하는 구조라 sync_etf_price.py와 동일한 universe-순회 패턴을 따른다.
+종목마다 1회 호출이 필요하므로 sync_etf_price와 동일하게 유니버스를
+asyncio.gather로 병렬 조회하고(클라이언트가 유량을 페이싱한다), 개별 종목
+실패는 경고만 남기고 나머지를 계속 적재한다.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ async def _fetch_one(
     api_client: KisApiClient, token: str, short_code: str, reference_date: date
 ) -> list[EtfConstituent]:
     output2 = await fetch_constituents(api_client, token, short_code)
-    return map_to_constituent_rows(short_code, output2, reference_date)
+    return map_to_constituent_rows(short_code, reference_date, output2)
 
 
 async def sync_etf_constituent(

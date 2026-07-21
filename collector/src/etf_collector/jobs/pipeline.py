@@ -1,9 +1,15 @@
-"""ETF 수집 파이프라인: universe sync → enrichment → 구성종목 수집을 순차 실행한다.
+"""ETF 수집 파이프라인 — 데이터 성격에 맞춰 3개 진입점으로 분리한다.
 
-enrichment/구성종목 수집은 etf 유니버스가 먼저 채워져 있어야 하므로,
-독립된 cron 3개로 스태거링하지 않고 단일 cron이 이 파이프라인 하나를 순차
-호출하는 구조로 의존관계를 안전하게 표현한다. 각 단계는 job_execution_log에
-개별 기록되어, 알림 체계가 없는 현재 상태에서도 사후 디버깅이 가능하다.
+- run_daily_open: 장 시작 전 1회. 마스터파일로 ETF 유니버스를 채운다. 장중/마감
+  단계가 모두 etf 테이블 존재를 전제하므로 반드시 먼저 실행돼야 한다.
+- run_intraday_price: 장중 30분 주기. 일별 시세를 오늘 하루만 좁혀 갱신해 상세
+  페이지의 오늘 캔들이 실시간으로 자라게 한다(가벼운 단일 단계).
+- run_daily_close: 장 마감 후 1회. 오늘 봉 확정 + EOD 시세 스냅샷(enrich) +
+  구성종목 바스켓을 함께 적재한다.
+
+각 단계는 _run_stage로 감싸 job_execution_log에 개별 기록되어, 알림 체계가 없는
+현재 상태에서도 사후 디버깅이 가능하다. 한 단계가 실패하면 로그에 fail을 남기고
+해당 진입점 실행을 중단한다.
 """
 
 from __future__ import annotations
@@ -29,6 +35,9 @@ from supabase import Client
 
 logger = logging.getLogger(__name__)
 
+# 장중 시세 갱신은 오늘 하루만 좁혀 미완성 봉만 재조회한다.
+_INTRADAY_WINDOW_DAYS = 0
+
 
 async def _run_stage(
     job_log_repository: JobExecutionLogRepository,
@@ -45,7 +54,41 @@ async def _run_stage(
     job_log_repository.succeed(log_id, count)
 
 
-async def run_pipeline(
+async def run_daily_open(
+    settings: Settings,
+    supabase: Client,
+    etf_repository: EtfInfoRepository,
+    job_log_repository: JobExecutionLogRepository,
+) -> None:
+    """장 시작 전 1회: ETF 유니버스 동기화."""
+    await _run_stage(job_log_repository, "sync_etf_info", lambda: sync_etf_info(etf_repository))
+
+
+async def run_intraday_price(
+    settings: Settings,
+    supabase: Client,
+    etf_repository: EtfInfoRepository,
+    price_repository: EtfPriceRepository,
+    job_log_repository: JobExecutionLogRepository,
+) -> None:
+    """장중 30분 주기: 오늘 일별 시세(미완성 봉)만 갱신."""
+    async with httpx.AsyncClient(timeout=30.0) as http_client:
+        auth_manager = KisAuthManager(settings, supabase, http_client)
+        api_client = KisApiClient(settings, http_client)
+        await _run_stage(
+            job_log_repository,
+            "sync_etf_price_intraday",
+            lambda: sync_etf_price(
+                price_repository,
+                etf_repository,
+                auth_manager,
+                api_client,
+                window_days=_INTRADAY_WINDOW_DAYS,
+            ),
+        )
+
+
+async def run_daily_close(
     settings: Settings,
     supabase: Client,
     etf_repository: EtfInfoRepository,
@@ -54,15 +97,11 @@ async def run_pipeline(
     constituent_repository: EtfConstituentRepository,
     job_log_repository: JobExecutionLogRepository,
 ) -> None:
+    """장 마감 후 1회: 오늘 봉 확정 + EOD 시세 스냅샷(enrich) + 구성종목 바스켓."""
     async with httpx.AsyncClient(timeout=30.0) as http_client:
         auth_manager = KisAuthManager(settings, supabase, http_client)
         api_client = KisApiClient(settings, http_client)
 
-        await _run_stage(
-            job_log_repository,
-            "sync_etf_info",
-            lambda: sync_etf_info(etf_repository, settings, http_client),
-        )
         await _run_stage(
             job_log_repository,
             "enrich_etf_info",
