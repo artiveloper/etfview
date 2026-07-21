@@ -1,8 +1,7 @@
 """KRX 데이터포털 ETF 전종목 기본정보 → EtfInfo → Supabase etf upsert.
 
-기초지수/지수산출기관/복제방법/운용사/CU수량/총보수/과세유형 등 정적 필드가 이
-한 번의 조회로 함께 채워진다. 추적배수(tracking_multiplier)만 이 응답에 없어
-enrich_etf_info(KIS 현재가 API)에서 보강한다.
+기초지수/지수산출기관/추적배수/복제방법/운용사/CU수량/총보수/과세유형 등 정적
+필드가 이 한 번의 조회로 함께 채워진다.
 """
 
 import logging

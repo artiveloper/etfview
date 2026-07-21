@@ -13,6 +13,7 @@ def _row(**overrides: str) -> dict[str, str]:
         "LIST_DD": "2023/10/19",
         "ETF_OBJ_IDX_NM": "iSelect 2차전지양극재 지수",
         "IDX_CALC_INST_NM1": "NH투자증권",
+        "IDX_CALC_INST_NM2": "일반",
         "ETF_REPLICA_METHD_TP_CD": "실물(패시브)",
         "IDX_MKT_CLSS_NM": "국내",
         "IDX_ASST_CLSS_NM": "주식",
@@ -37,6 +38,7 @@ def test_maps_row_to_etf_info() -> None:
     assert etf.listed_date == date(2023, 10, 19)
     assert etf.base_index_name == "iSelect 2차전지양극재 지수"
     assert etf.index_provider == "NH투자증권"
+    assert etf.tracking_multiplier == "일반"
     assert etf.replication_method == "실물(패시브)"
     assert etf.base_market_class == "국내"
     assert etf.base_asset_class == "주식"

@@ -1,4 +1,4 @@
-# ETF_ETN 현재가 API로 ETF 종목의 일 1회 시세 스냅샷과 추적배수를 보강하는 모듈
+# ETF_ETN 현재가 API로 ETF 종목의 일 1회 시세 스냅샷을 조회하는 모듈
 from __future__ import annotations
 
 from datetime import date
@@ -79,17 +79,4 @@ def map_to_etf_quote_fields(quote: dict[str, Any]) -> dict[str, Any]:
         fields["foreign_holding_qty"] = int(quote["frgn_hldn_qty"])
     if quote.get("frgn_hldn_qty_rate"):
         fields["foreign_holding_rate"] = float(quote["frgn_hldn_qty_rate"])
-    return fields
-
-
-def map_to_etf_info_fields(quote: dict[str, Any]) -> dict[str, Any]:
-    """현재가 API 응답에서 EtfInfo 미채움 필드로 매핑 가능한 값만 추출한다.
-
-    manager/creation_unit_quantity/replication_method 등 나머지 정적 필드는
-    KRX 데이터포털 기반 sync_etf_info에서 이미 채워지므로, 여기서는 그 응답에
-    없는 tracking_multiplier(추적배수)만 보강한다.
-    """
-    fields: dict[str, Any] = {}
-    if quote.get("etf_trc_ert_mltp"):
-        fields["tracking_multiplier"] = quote["etf_trc_ert_mltp"]
     return fields

@@ -29,7 +29,11 @@ def _parse_int(raw: str) -> int | None:
 
 
 def map_to_etf_info(row: dict[str, Any]) -> EtfInfo:
-    """MDCSTAT04601 응답 행 하나를 EtfInfo로 변환한다."""
+    """MDCSTAT04601 응답 행 하나를 EtfInfo로 변환한다.
+
+    IDX_CALC_INST_NM2는 필드명과 달리 실제로는 추적배수(일반/2X 레버리지/1X 인버스 등)
+    값을 담고 있다 — KRX 다운로드 CSV의 "추적배수" 컬럼과 위치가 일치함을 확인했다.
+    """
     return EtfInfo(
         short_code=row["ISU_SRT_CD"],
         standard_code=row["ISU_CD"],
@@ -39,6 +43,7 @@ def map_to_etf_info(row: dict[str, Any]) -> EtfInfo:
         listed_date=_parse_date(row.get("LIST_DD", "")),
         base_index_name=row.get("ETF_OBJ_IDX_NM") or None,
         index_provider=row.get("IDX_CALC_INST_NM1") or None,
+        tracking_multiplier=row.get("IDX_CALC_INST_NM2") or None,
         replication_method=row.get("ETF_REPLICA_METHD_TP_CD") or None,
         base_market_class=row.get("IDX_MKT_CLSS_NM") or None,
         base_asset_class=row.get("IDX_ASST_CLSS_NM") or None,
