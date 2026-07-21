@@ -2,7 +2,9 @@ import { supabase } from '@/lib/supabase/client'
 import { parseEtfList, parseEtfInfo, parseEtfQuote, parseEtfFilterOptions } from '../parser/etf.parser'
 import type { EtfListParams, EtfListResult, EtfFilterOptions, EtfInfo, EtfQuote } from '../types'
 
-const DEFAULT_PAGE_SIZE = 20
+// 목록 그리드 컬럼 수(모바일 1 · sm 2 · lg 3)의 최소공배수 6의 배수로 맞춰
+// 페이지 마지막 줄이 항상 꽉 차도록 한다.
+export const DEFAULT_PAGE_SIZE = 18
 
 export async function fetchEtfList(params: EtfListParams): Promise<EtfListResult> {
     const {
@@ -24,6 +26,8 @@ export async function fetchEtfList(params: EtfListParams): Promise<EtfListResult
         .select('*, etf_quote(current_price, price_change, price_change_rate, net_asset_total)', {
             count: 'exact',
         })
+        .is('delisted_at', null)
+        .order('net_asset_total', { referencedTable: 'etf_quote', ascending: false, nullsFirst: false })
         .order('short_code', { ascending: true })
 
     if (search) {

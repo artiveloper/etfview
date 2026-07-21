@@ -86,37 +86,37 @@ export function EtfFilters() {
             <FilterRow
                 label="기초자산"
                 value={assetClass}
-                onChange={(v) => setParams({ assetClass: v, page: null })}
+                onChange={(v) => setParams({ assetClass: v })}
                 options={filterOptions.assetClasses.map((cls) => ({ value: cls, label: cls }))}
             />
             <FilterRow
                 label="시장"
                 value={market}
-                onChange={(v) => setParams({ market: v, page: null })}
+                onChange={(v) => setParams({ market: v })}
                 options={filterOptions.markets.map((m) => ({ value: m, label: m }))}
             />
             <FilterRow
                 label="유형"
                 value={leverage}
-                onChange={(v) => setParams({ leverage: v as LeverageType | null, page: null })}
+                onChange={(v) => setParams({ leverage: v as LeverageType | null })}
                 options={LEVERAGE_VALUES.map((v) => ({ value: v, label: LEVERAGE_LABELS[v] }))}
             />
             <FilterRow
                 label="운용사"
                 value={manager}
-                onChange={(v) => setParams({ manager: v, page: null })}
+                onChange={(v) => setParams({ manager: v })}
                 options={filterOptions.managers.map((m) => ({ value: m, label: m }))}
             />
             <FilterRow
                 label="복제방법"
                 value={replicationMethod}
-                onChange={(v) => setParams({ replicationMethod: v, page: null })}
+                onChange={(v) => setParams({ replicationMethod: v })}
                 options={filterOptions.replicationMethods.map((m) => ({ value: m, label: m }))}
             />
             <FilterRow
                 label="과세유형"
                 value={taxType}
-                onChange={(v) => setParams({ taxType: v, page: null })}
+                onChange={(v) => setParams({ taxType: v })}
                 options={filterOptions.taxTypes.map((t) => ({ value: t, label: t }))}
             />
             {hasActiveFilter && (
@@ -133,7 +133,6 @@ export function EtfFilters() {
                             manager: null,
                             replicationMethod: null,
                             taxType: null,
-                            page: null,
                         })
                     }
                 >

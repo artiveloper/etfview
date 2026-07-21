@@ -2,13 +2,13 @@ import 'server-only'
 import { unstable_cache } from 'next/cache'
 import type { QueryClient } from '@tanstack/react-query'
 import { etfQueryKeys } from '../query-keys/etf.query-keys'
-import { etfQueryOptions } from '../query-options/etf.query-options'
+import { etfQueryOptions, etfInfiniteListQuery } from '../query-options/etf.query-options'
 import { fetchEtfFilterOptions } from '../apis/etf.api'
 import type { EtfListParams } from '../types'
 
 type ListParams = Pick<
     EtfListParams,
-    'page' | 'search' | 'assetClass' | 'market' | 'leverage' | 'manager' | 'replicationMethod' | 'taxType'
+    'search' | 'assetClass' | 'market' | 'leverage' | 'manager' | 'replicationMethod' | 'taxType'
 >
 
 // React Query의 QueryClient는 요청마다 새로 생성돼(query-client.ts의 cache() 스코프)
@@ -20,7 +20,7 @@ const getCachedFilterOptions = unstable_cache(fetchEtfFilterOptions, ['etf-filte
 export const etfPrefetch = {
     list(params: ListParams) {
         return async (queryClient: QueryClient) => {
-            await queryClient.prefetchQuery(etfQueryOptions.list(params))
+            await queryClient.prefetchInfiniteQuery(etfInfiniteListQuery(params))
         }
     },
 
