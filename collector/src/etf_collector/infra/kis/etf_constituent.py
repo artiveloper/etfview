@@ -37,8 +37,8 @@ def map_to_constituent_rows(
     """구성종목시세 응답(output2)을 EtfConstituent 행 목록으로 변환한다.
 
     이 API 응답에는 보유수량(held_quantity)과 표준코드(constituent_standard_code, ISIN)가
-    없어 두 필드는 채우지 않는다 — 종목명/비중/평가금액만 매핑한다. 구성종목
-    단축코드(stck_shrn_iscd)가 비어 있는 행은 건너뛴다.
+    없어 두 필드는 채우지 않는다. 그 외 시세 필드(현재가·전일대비·거래량·시가총액 등)는
+    모두 매핑한다. 구성종목 단축코드(stck_shrn_iscd)가 비어 있는 행은 건너뛴다.
     """
     rows: list[EtfConstituent] = []
     for item in output2:
@@ -55,6 +55,25 @@ def map_to_constituent_rows(
                 ),
                 market_value_amount=(
                     float(item["etf_vltn_amt"]) if item.get("etf_vltn_amt") else None
+                ),
+                current_price=float(item["stck_prpr"]) if item.get("stck_prpr") else None,
+                price_change=float(item["prdy_vrss"]) if item.get("prdy_vrss") else None,
+                price_change_sign=item.get("prdy_vrss_sign") or None,
+                price_change_rate=float(item["prdy_ctrt"]) if item.get("prdy_ctrt") else None,
+                volume=int(item["acml_vol"]) if item.get("acml_vol") else None,
+                trade_amount=int(item["acml_tr_pbmn"]) if item.get("acml_tr_pbmn") else None,
+                today_change_rate=(
+                    float(item["tday_rsfl_rate"]) if item.get("tday_rsfl_rate") else None
+                ),
+                volume_vs_prev_day=(
+                    int(item["prdy_vrss_vol"]) if item.get("prdy_vrss_vol") else None
+                ),
+                trade_turnover_rate=(
+                    float(item["tr_pbmn_tnrt"]) if item.get("tr_pbmn_tnrt") else None
+                ),
+                market_cap=int(item["hts_avls"]) if item.get("hts_avls") else None,
+                constituent_market_cap=(
+                    int(item["etf_cnfg_issu_avls"]) if item.get("etf_cnfg_issu_avls") else None
                 ),
                 reference_date=reference_date,
             )
