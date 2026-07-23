@@ -14,5 +14,16 @@ class EtfConstituent(BaseModel):
     held_quantity: int | None = None
     weight_percentage: float | None = None
     market_value_amount: float | None = None
+    current_price: float | None = None
+    price_change: float | None = None
+    price_change_sign: str | None = None
+    price_change_rate: float | None = None
+    volume: int | None = None
+    trade_amount: int | None = None
+    today_change_rate: float | None = None
+    volume_vs_prev_day: int | None = None
+    trade_turnover_rate: float | None = None
+    market_cap: int | None = None
+    constituent_market_cap: int | None = None
     reference_date: date
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))

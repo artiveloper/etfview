@@ -2,12 +2,14 @@ import { Suspense } from 'react'
 import { HydrationBoundary } from '@tanstack/react-query'
 import { runPrefetch } from '@/lib/react-query/prefetch'
 import { etfPrefetch } from '@/domain/etf/server'
-import { EtfDetail } from '@/components/etf/etf-detail'
-import { EtfQuotePanel } from '@/components/etf/etf-quote-panel'
+import { EtfDetailHeader } from '@/components/etf/etf-detail-header'
+import { EtfOverview } from '@/components/etf/etf-overview'
+import { EtfConstituentChart } from '@/components/etf/etf-constituent-chart'
 import { EtfConstituentPanel } from '@/components/etf/etf-constituent-panel'
 import {
-    EtfDetailSkeleton,
-    EtfQuotePanelSkeleton,
+    EtfDetailHeaderSkeleton,
+    EtfOverviewSkeleton,
+    EtfConstituentChartSkeleton,
     EtfConstituentPanelSkeleton,
 } from '@/components/etf/etf-detail-skeleton'
 
@@ -26,18 +28,19 @@ export default async function EtfDetailPage({ params }: Props) {
 
     return (
         <HydrationBoundary state={state}>
-            <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
+            <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                 <div className="mb-6">
-                    <h1 className="text-xl font-bold tracking-tight sm:text-2xl">ETF 상세</h1>
-                    <p className="mt-1 text-sm text-muted-foreground">{shortCode}</p>
+                    <Suspense fallback={<EtfDetailHeaderSkeleton />}>
+                        <EtfDetailHeader shortCode={shortCode} />
+                    </Suspense>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <Suspense fallback={<EtfDetailSkeleton />}>
-                        <EtfDetail shortCode={shortCode} />
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    <Suspense fallback={<EtfOverviewSkeleton />}>
+                        <EtfOverview shortCode={shortCode} />
                     </Suspense>
-                    <Suspense fallback={<EtfQuotePanelSkeleton />}>
-                        <EtfQuotePanel shortCode={shortCode} />
+                    <Suspense fallback={<EtfConstituentChartSkeleton />}>
+                        <EtfConstituentChart shortCode={shortCode} />
                     </Suspense>
                 </div>
 
