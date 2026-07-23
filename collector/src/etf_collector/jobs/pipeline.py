@@ -61,7 +61,12 @@ async def run_daily_open(
     job_log_repository: JobExecutionLogRepository,
 ) -> None:
     """장 시작 전 1회: ETF 유니버스 동기화."""
-    await _run_stage(job_log_repository, "sync_etf_info", lambda: sync_etf_info(etf_repository))
+    async with httpx.AsyncClient(timeout=30.0) as http_client:
+        await _run_stage(
+            job_log_repository,
+            "sync_etf_info",
+            lambda: sync_etf_info(etf_repository, settings, http_client),
+        )
 
 
 async def run_intraday_price(
