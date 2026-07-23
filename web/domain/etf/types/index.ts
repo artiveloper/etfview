@@ -55,6 +55,9 @@ export type EtfConstituent = {
     constituentName: string | null
     weightPercentage: number | null
     marketValueAmount: number | null
+    currentPrice: number | null
+    priceChangeRate: number | null
+    marketCap: number | null
 }
 
 export type EtfListParams = {

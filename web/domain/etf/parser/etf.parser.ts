@@ -152,6 +152,9 @@ type RawEtfConstituentRow = {
     constituent_name: string | null
     weight_percentage: number | null
     market_value_amount: number | null
+    current_price: number | null
+    price_change_rate: number | null
+    market_cap: number | null
 }
 
 export function parseEtfConstituent(raw: RawEtfConstituentRow): EtfConstituent {
@@ -161,6 +164,9 @@ export function parseEtfConstituent(raw: RawEtfConstituentRow): EtfConstituent {
         constituentName: raw.constituent_name,
         weightPercentage: raw.weight_percentage,
         marketValueAmount: raw.market_value_amount,
+        currentPrice: raw.current_price,
+        priceChangeRate: raw.price_change_rate,
+        marketCap: raw.market_cap,
     }
 }
 
