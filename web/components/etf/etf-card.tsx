@@ -22,31 +22,26 @@ export function EtfCard({ etf }: Props) {
         <Link href={`/etf/${etf.shortCode}`}>
             <Card className="gap-0 rounded-lg border py-0 shadow-none ring-0 transition-colors hover:bg-accent/50">
                 <CardContent className="p-4">
-                    <p className="min-h-10 font-semibold leading-tight">
-                        {etf.name ?? etf.abbreviatedName ?? '-'}{' '}
-                        <span className="font-normal text-sm text-muted-foreground">{etf.shortCode}</span>
-                    </p>
-
-                    <div className="mt-2 flex items-center justify-between gap-3">
-                        {quote && quote.currentPrice !== null ? (
-                            <div className="flex items-baseline gap-1.5">
-                                <span className="text-sm font-bold">{formatNumber(quote.currentPrice)}원</span>
-                                {quote.priceChangeRate !== null && (
-                                    <span className={`text-sm font-medium ${changeColor}`}>
-                                        {quote.priceChangeRate > 0 ? '+' : ''}
-                                        {quote.priceChangeRate.toFixed(2)}%
-                                    </span>
-                                )}
-                            </div>
-                        ) : (
-                            <span />
-                        )}
+                    <div className="flex min-h-10 items-start justify-between gap-3">
+                        <p className="font-semibold leading-tight">{etf.abbreviatedName ?? etf.name ?? '-'}</p>
                         {etf.totalFee !== null && (
                             <Badge variant="secondary" className="shrink-0">
                                 총보수 {etf.totalFee.toFixed(4)}%
                             </Badge>
                         )}
                     </div>
+
+                    {quote && quote.currentPrice !== null && (
+                        <div className="mt-2 flex items-baseline gap-1.5">
+                            <span className="text-sm font-bold">{formatNumber(quote.currentPrice)}원</span>
+                            {quote.priceChangeRate !== null && (
+                                <span className={`text-sm font-medium ${changeColor}`}>
+                                    {quote.priceChangeRate > 0 ? '+' : ''}
+                                    {quote.priceChangeRate.toFixed(2)}%
+                                </span>
+                            )}
+                        </div>
+                    )}
 
                     <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                         {etf.manager && <span>{etf.manager}</span>}
