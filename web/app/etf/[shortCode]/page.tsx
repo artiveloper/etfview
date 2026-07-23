@@ -3,11 +3,13 @@ import { HydrationBoundary } from '@tanstack/react-query'
 import { runPrefetch } from '@/lib/react-query/prefetch'
 import { etfPrefetch } from '@/domain/etf/server'
 import { EtfDetailHeader } from '@/components/etf/etf-detail-header'
+import { EtfKeyMetrics } from '@/components/etf/etf-key-metrics'
 import { EtfOverview } from '@/components/etf/etf-overview'
 import { EtfConstituentChart } from '@/components/etf/etf-constituent-chart'
 import { EtfConstituentPanel } from '@/components/etf/etf-constituent-panel'
 import {
     EtfDetailHeaderSkeleton,
+    EtfKeyMetricsSkeleton,
     EtfOverviewSkeleton,
     EtfConstituentChartSkeleton,
     EtfConstituentPanelSkeleton,
@@ -32,6 +34,12 @@ export default async function EtfDetailPage({ params }: Props) {
                 <div className="mb-6">
                     <Suspense fallback={<EtfDetailHeaderSkeleton />}>
                         <EtfDetailHeader shortCode={shortCode} />
+                    </Suspense>
+                </div>
+
+                <div className="mb-4">
+                    <Suspense fallback={<EtfKeyMetricsSkeleton />}>
+                        <EtfKeyMetrics shortCode={shortCode} />
                     </Suspense>
                 </div>
 

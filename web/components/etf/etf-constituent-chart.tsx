@@ -3,14 +3,7 @@
 
 import { Pie, PieChart } from 'recharts'
 import { Card, CardContent } from '@/components/ui/card'
-import {
-    ChartContainer,
-    ChartTooltip,
-    ChartTooltipContent,
-    ChartLegend,
-    ChartLegendContent,
-    type ChartConfig,
-} from '@/components/ui/chart'
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart'
 import { useEtfConstituents } from '@/domain/etf'
 
 type Props = {
@@ -55,15 +48,25 @@ export function EtfConstituentChart({ shortCode }: Props) {
     return (
         <Card className="gap-0 rounded-lg border py-0 shadow-none ring-0">
             <CardContent className="p-4">
-                <h2 className="text-sm font-semibold">구성종목 (상위 {TOP_N}종목)</h2>
-                <p className="mt-0.5 text-xs text-muted-foreground">비중 상위 {TOP_N}종목 · 나머지는 기타로 합산</p>
+                <h2 className="text-sm font-semibold">구성비중 TOP{TOP_N}</h2>
+                <p className="mt-0.5 text-xs text-muted-foreground">비중 상위{TOP_N}개 종목 · 나머지는 기타로 합산</p>
                 <ChartContainer config={chartConfig} className="mx-auto mt-3 aspect-square max-h-[320px]">
                     <PieChart>
                         <ChartTooltip content={<ChartTooltipContent nameKey="name" hideLabel />} />
                         <Pie data={data} dataKey="weight" nameKey="name" />
-                        <ChartLegend content={<ChartLegendContent nameKey="name" />} className="flex-wrap gap-2" />
                     </PieChart>
                 </ChartContainer>
+                <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-xs">
+                    {data.map((d) => (
+                        <div key={d.name} className="flex items-center gap-1.5">
+                            <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: d.fill }} />
+                            <span>
+                                <span className="font-medium text-foreground">{d.name}</span>{' '}
+                                <span className="text-muted-foreground">{d.weight.toFixed(2)}%</span>
+                            </span>
+                        </div>
+                    ))}
+                </div>
             </CardContent>
         </Card>
     )

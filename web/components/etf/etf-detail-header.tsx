@@ -25,16 +25,13 @@ export function EtfDetailHeader({ shortCode }: Props) {
     return (
         <div>
             <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
-                {name}{' '}
-                <span className="text-base font-normal text-muted-foreground sm:text-lg">
-                    ({etf.shortCode})
-                </span>
+                {name} <span className="text-base font-normal text-muted-foreground sm:text-lg">({etf.shortCode})</span>
             </h1>
             {quote && (
                 <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-2xl font-bold sm:text-3xl">{formatNumber(quote.currentPrice)}</span>
+                    <span className="text-2xl font-bold sm:text-3xl">{formatNumber(quote.currentPrice)}원</span>
                     {quote.priceChange !== null && quote.priceChangeRate !== null && (
-                        <span className={`text-sm font-medium ${changeColor}`}>
+                        <span className={`text-2xl font-bold sm:text-3xl ${changeColor}`}>
                             {quote.priceChange > 0 ? '+' : ''}
                             {formatNumber(quote.priceChange)} ({quote.priceChangeRate.toFixed(2)}%)
                         </span>
