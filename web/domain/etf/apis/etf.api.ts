@@ -1,6 +1,12 @@
 import { supabase } from '@/lib/supabase/client'
-import { parseEtfList, parseEtfInfo, parseEtfQuote, parseEtfFilterOptions } from '../parser/etf.parser'
-import type { EtfListParams, EtfListResult, EtfFilterOptions, EtfInfo, EtfQuote } from '../types'
+import {
+    parseEtfList,
+    parseEtfInfo,
+    parseEtfQuote,
+    parseEtfConstituent,
+    parseEtfFilterOptions,
+} from '../parser/etf.parser'
+import type { EtfListParams, EtfListResult, EtfFilterOptions, EtfInfo, EtfQuote, EtfConstituent } from '../types'
 
 // 목록 그리드 컬럼 수(모바일 1 · sm 2 · lg 3)의 최소공배수 6의 배수로 맞춰
 // 페이지 마지막 줄이 항상 꽉 차도록 한다.
@@ -86,6 +92,19 @@ export async function fetchEtfQuote(shortCode: string): Promise<EtfQuote | null>
 
     if (error) throw new Error(error.message)
     return data ? parseEtfQuote(data) : null
+}
+
+export async function fetchEtfConstituents(shortCode: string): Promise<EtfConstituent[]> {
+    // etf_constituent에는 순서 컬럼이 없어 저장된 weight_percentage로 비중 내림차순을 복원한다
+    // (KIS 구성종목시세 API가 비중 상위 30종목까지만 내려주므로 결과도 최대 30개다).
+    const { data, error } = await supabase
+        .from('etf_constituent')
+        .select('*')
+        .eq('etf_short_code', shortCode)
+        .order('weight_percentage', { ascending: false, nullsFirst: false })
+
+    if (error) throw new Error(error.message)
+    return (data ?? []).map(parseEtfConstituent)
 }
 
 export async function fetchEtfFilterOptions(): Promise<EtfFilterOptions> {

@@ -46,4 +46,10 @@ export const etfPrefetch = {
             await queryClient.prefetchQuery(etfQueryOptions.quote(shortCode))
         }
     },
+
+    constituents(shortCode: string) {
+        return async (queryClient: QueryClient) => {
+            await queryClient.prefetchQuery(etfQueryOptions.constituents(shortCode))
+        }
+    },
 }

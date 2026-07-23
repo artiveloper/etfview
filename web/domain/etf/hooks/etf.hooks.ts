@@ -22,3 +22,7 @@ export function useEtfDetail(shortCode: string) {
 export function useEtfQuote(shortCode: string) {
     return useSuspenseQuery(etfQueryOptions.quote(shortCode))
 }
+
+export function useEtfConstituents(shortCode: string) {
+    return useSuspenseQuery(etfQueryOptions.constituents(shortCode))
+}

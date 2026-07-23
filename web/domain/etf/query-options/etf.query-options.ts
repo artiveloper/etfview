@@ -5,6 +5,7 @@ import {
     fetchEtfFilterOptions,
     fetchEtfDetail,
     fetchEtfQuote,
+    fetchEtfConstituents,
     DEFAULT_PAGE_SIZE,
 } from '../apis/etf.api'
 import type { EtfListParams, EtfListResult } from '../types'
@@ -42,5 +43,10 @@ export const etfQueryOptions = {
     quote: (shortCode: string) => ({
         queryKey: etfQueryKeys.quote(shortCode),
         queryFn: () => fetchEtfQuote(shortCode),
+    }),
+
+    constituents: (shortCode: string) => ({
+        queryKey: etfQueryKeys.constituents(shortCode),
+        queryFn: () => fetchEtfConstituents(shortCode),
     }),
 }

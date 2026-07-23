@@ -4,7 +4,12 @@ import { runPrefetch } from '@/lib/react-query/prefetch'
 import { etfPrefetch } from '@/domain/etf/server'
 import { EtfDetail } from '@/components/etf/etf-detail'
 import { EtfQuotePanel } from '@/components/etf/etf-quote-panel'
-import { EtfDetailSkeleton, EtfQuotePanelSkeleton } from '@/components/etf/etf-detail-skeleton'
+import { EtfConstituentPanel } from '@/components/etf/etf-constituent-panel'
+import {
+    EtfDetailSkeleton,
+    EtfQuotePanelSkeleton,
+    EtfConstituentPanelSkeleton,
+} from '@/components/etf/etf-detail-skeleton'
 
 type Props = {
     params: Promise<{ shortCode: string }>
@@ -16,6 +21,7 @@ export default async function EtfDetailPage({ params }: Props) {
     const state = await runPrefetch(
         etfPrefetch.detail(shortCode),
         etfPrefetch.quote(shortCode),
+        etfPrefetch.constituents(shortCode),
     )
 
     return (
@@ -32,6 +38,12 @@ export default async function EtfDetailPage({ params }: Props) {
                     </Suspense>
                     <Suspense fallback={<EtfQuotePanelSkeleton />}>
                         <EtfQuotePanel shortCode={shortCode} />
+                    </Suspense>
+                </div>
+
+                <div className="mt-4">
+                    <Suspense fallback={<EtfConstituentPanelSkeleton />}>
+                        <EtfConstituentPanel shortCode={shortCode} />
                     </Suspense>
                 </div>
             </main>

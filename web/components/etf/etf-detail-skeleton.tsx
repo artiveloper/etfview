@@ -36,3 +36,19 @@ export function EtfQuotePanelSkeleton() {
         </Card>
     )
 }
+
+export function EtfConstituentPanelSkeleton() {
+    return (
+        <Card className="gap-0 rounded-lg border py-0 shadow-none ring-0">
+            <CardContent className="p-4">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="mt-2 h-3 w-56" />
+                <div className="mt-4 space-y-3">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                        <Skeleton key={i} className="h-4 w-full" />
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+    )
+}

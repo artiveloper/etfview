@@ -49,6 +49,14 @@ export type EtfQuote = {
     updatedAt: string
 }
 
+export type EtfConstituent = {
+    etfShortCode: string
+    constituentShortCode: string
+    constituentName: string | null
+    weightPercentage: number | null
+    marketValueAmount: number | null
+}
+
 export type EtfListParams = {
     page: number
     search: string

@@ -1,4 +1,4 @@
-import type { EtfInfo, EtfQuote, EtfListItem, EtfListResult, EtfFilterOptions } from '../types'
+import type { EtfInfo, EtfQuote, EtfConstituent, EtfListItem, EtfListResult, EtfFilterOptions } from '../types'
 
 type RawEtfRow = {
     short_code: string
@@ -143,6 +143,24 @@ export function parseEtfQuote(raw: RawEtfQuoteRow): EtfQuote {
         foreignHoldingQty: raw.foreign_holding_qty,
         foreignHoldingRate: raw.foreign_holding_rate,
         updatedAt: raw.updated_at,
+    }
+}
+
+type RawEtfConstituentRow = {
+    etf_short_code: string
+    constituent_short_code: string
+    constituent_name: string | null
+    weight_percentage: number | null
+    market_value_amount: number | null
+}
+
+export function parseEtfConstituent(raw: RawEtfConstituentRow): EtfConstituent {
+    return {
+        etfShortCode: raw.etf_short_code,
+        constituentShortCode: raw.constituent_short_code,
+        constituentName: raw.constituent_name,
+        weightPercentage: raw.weight_percentage,
+        marketValueAmount: raw.market_value_amount,
     }
 }
 
