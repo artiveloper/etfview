@@ -134,7 +134,7 @@ async def _run_revoke() -> None:
     logger.info("KIS 접근토큰 폐기 완료")
 
 
-def _run_scheduler() -> None:
+async def _run_scheduler() -> None:
     settings = get_settings()
     supabase = get_supabase_client(settings)
     (
@@ -197,7 +197,7 @@ def _run_scheduler() -> None:
         settings.close_cron_hour,
         settings.close_cron_minute,
     )
-    asyncio.get_event_loop().run_forever()
+    await asyncio.Event().wait()
 
 
 def run() -> None:
@@ -250,7 +250,7 @@ def run() -> None:
     elif args.once:
         asyncio.run(_run_daily_once())
     else:
-        _run_scheduler()
+        asyncio.run(_run_scheduler())
 
 
 if __name__ == "__main__":
