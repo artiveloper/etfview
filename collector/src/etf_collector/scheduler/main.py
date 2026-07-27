@@ -70,6 +70,36 @@ async def _run_daily_once() -> None:
     )
 
 
+async def _run_open_once() -> None:
+    """개장 전 유니버스 동기화(run_daily_open)만 1회 실행한다."""
+    settings = get_settings()
+    supabase = get_supabase_client(settings)
+    etf_repository, _, _, _, job_log_repository = _build_repositories(supabase)
+    await run_daily_open(settings, supabase, etf_repository, job_log_repository)
+
+
+async def _run_close_once() -> None:
+    """장 마감 후 확정 동기화(run_daily_close)만 1회 실행한다."""
+    settings = get_settings()
+    supabase = get_supabase_client(settings)
+    (
+        etf_repository,
+        quote_repository,
+        price_repository,
+        constituent_repository,
+        job_log_repository,
+    ) = _build_repositories(supabase)
+    await run_daily_close(
+        settings,
+        supabase,
+        etf_repository,
+        quote_repository,
+        price_repository,
+        constituent_repository,
+        job_log_repository,
+    )
+
+
 async def _run_intraday_once() -> None:
     """장중 일별 시세 갱신을 1회 실행한다(오늘 미완성 봉 확인용)."""
     settings = get_settings()
@@ -177,6 +207,16 @@ def run() -> None:
         help="개장→마감 일일 사이클을 즉시 1회 실행 후 종료(장중 시세 제외)",
     )
     parser.add_argument(
+        "--open-once",
+        action="store_true",
+        help="개장 전 유니버스 동기화(run_daily_open)만 즉시 1회 실행 후 종료",
+    )
+    parser.add_argument(
+        "--close-once",
+        action="store_true",
+        help="장 마감 후 확정 동기화(run_daily_close)만 즉시 1회 실행 후 종료",
+    )
+    parser.add_argument(
         "--intraday-once",
         action="store_true",
         help="장중 일별 시세 갱신을 즉시 1회 실행 후 종료",
@@ -201,6 +241,10 @@ def run() -> None:
         asyncio.run(_run_backfill_price(args.backfill_days))
     elif args.intraday_once:
         asyncio.run(_run_intraday_once())
+    elif args.open_once:
+        asyncio.run(_run_open_once())
+    elif args.close_once:
+        asyncio.run(_run_close_once())
     elif args.once:
         asyncio.run(_run_daily_once())
     else:
