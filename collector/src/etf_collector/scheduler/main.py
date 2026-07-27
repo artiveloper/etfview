@@ -3,6 +3,7 @@
 import argparse
 import asyncio
 import logging
+from zoneinfo import ZoneInfo
 
 import httpx
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -27,6 +28,7 @@ logger = logging.getLogger(__name__)
 # 제한하고, 지연 실행은 grace 안에서만 따라잡게 한다(누적 misfire 폭주 방지).
 _MAX_INSTANCES = 1
 _MISFIRE_GRACE_SECONDS = 300
+_SCHEDULER_TIMEZONE = ZoneInfo("Asia/Seoul")
 
 
 def _build_repositories(
@@ -143,7 +145,7 @@ def _run_scheduler() -> None:
         job_log_repository,
     ) = _build_repositories(supabase)
 
-    scheduler = AsyncIOScheduler()
+    scheduler = AsyncIOScheduler(timezone=_SCHEDULER_TIMEZONE)
     scheduler.add_job(
         run_daily_open,
         trigger="cron",
