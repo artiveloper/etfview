@@ -4,4 +4,9 @@ services:
     build: .
     env_file:
       - .env
+    environment:
+      - LOG_DIR=/app/logs
+    volumes:
+      - ./logs:/app/logs
+    user: "1001:1001"
     restart: unless-stopped

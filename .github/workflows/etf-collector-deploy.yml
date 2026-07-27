@@ -75,12 +75,12 @@ jobs:
         run: ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
 
       - name: Ensure deploy directory exists
-        run: ssh "$DEPLOY_USER@$DEPLOY_HOST" 'mkdir -p ~/etf-collector'
+        run: ssh "$DEPLOY_USER@$DEPLOY_HOST" 'mkdir -p /app/etfy/etfy-collector/logs'
 
       - name: Copy deploy files to server
-        run: scp docker-compose.yml .env "$DEPLOY_USER@$DEPLOY_HOST:~/etf-collector/"
+        run: scp docker-compose.yml .env "$DEPLOY_USER@$DEPLOY_HOST:/app/etfy/etfy-collector/"
 
       - name: Pull image and restart container
         run: |
           ssh "$DEPLOY_USER@$DEPLOY_HOST" \
-            'cd ~/etf-collector && docker compose pull && docker compose up -d --remove-orphans'
+            'cd /app/etfy/etfy-collector && docker compose pull && docker compose up -d --remove-orphans'
