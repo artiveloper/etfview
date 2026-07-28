@@ -54,7 +54,13 @@ class JobRegistry:
             logger.warning("%s 잡이 이미 실행 중이라 건너뜀", job.name)
             return False
         async with job.lock:
-            await job.run()
+            logger.info("%s 잡 시작", job.name)
+            try:
+                await job.run()
+            except Exception:
+                logger.exception("%s 잡 실패", job.name)
+                raise
+            logger.info("%s 잡 종료", job.name)
         return True
 
 
