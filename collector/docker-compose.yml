@@ -1,6 +1,6 @@
 services:
   etf-collector:
-    image: ghcr.io/artiveloper/etfview-collector:latest
+    image: ghcr.io/artiveloper/etfy-collector:latest
     build: .
     env_file:
       - .env

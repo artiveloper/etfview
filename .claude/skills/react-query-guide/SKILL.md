@@ -1,7 +1,7 @@
 ---
 name: react-query-guide
 description: >
-  etfview.kr React Query 데이터 레이어 SSoT.
+  etfy React Query 데이터 레이어 SSoT.
   도메인 디렉토리 구조(types/apis/parser/query-keys/query-options/hooks/prefetch),
   query key 안정성 규칙, queryOptions 팩토리, useQuery vs useSuspenseQuery, prefetch/
   HydrationBoundary, 캐시 레이어, nuqs URL 상태, 페이지네이션, mutation/invalidation 규칙.

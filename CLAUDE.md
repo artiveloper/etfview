@@ -156,3 +156,4 @@ uv run etf-collector --once                         # 단발 실행 (.env 필요
 | 2026-07-18 | eft-collector 하네스 초기 구성 (에이전트 4, 스킬 6 — ai-docs common/back 기반) | collector | 동일 |
 | 2026-07-19 | nextjs-guide·react-query-guide·shadcn-ui 스킬 3종 신규 | web | GamePot 원본을 실제 코드 기준으로 재작성 |
 | 2026-07-19 | 두 저장소를 `web/`+`collector/` 모노레포로 통합, `.claude`·`CLAUDE.md`를 루트 하나로 병합 (에이전트 7, 스킬 13) | 전체 | `etf_info` 스키마로만 결합된 두 프로젝트를 한 저장소에서 관리하기로 결정 — `architect`/`system-architecture`/`architecture-review` 3개는 양쪽 내용을 병합, 나머지는 대상 서브프로젝트를 스코프 노트로 명시하고 그대로 이동 |
+| 2026-07-28 | 제품명 etfview(.kr) → etfy로 리브랜딩, 에이전트·스킬 문서의 관련 언급 반영 | 전체 | 사용자 리브랜딩 결정 |

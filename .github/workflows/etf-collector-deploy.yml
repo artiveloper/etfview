@@ -13,7 +13,7 @@ permissions:
   packages: write   # GHCR 이미지 푸시에 필요
 
 env:
-  IMAGE: ghcr.io/artiveloper/etfview-collector
+  IMAGE: ghcr.io/artiveloper/etfy-collector
 
 jobs:
   build-and-push:

@@ -1,7 +1,7 @@
 ---
 name: nextjs-guide
 description: >
-  etfview.kr Next.js App Router 메커니즘 SSoT.
+  etfy Next.js App Router 메커니즘 SSoT.
   Server vs Client Component 경계, Suspense 스트리밍, TypeScript 규칙, 코드 포맷팅(4-space),
   Lighthouse ≥ 90 성능 가드레일.
   Next.js, App Router, Server Component, Client Component, 'use client', Suspense,

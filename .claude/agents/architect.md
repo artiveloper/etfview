@@ -31,7 +31,7 @@ model: opus
 
 ### 서브프로젝트 간 경계 (가장 중요)
 
-`web/`(etfview.kr)과 `collector/`(구 eft-collector)는 **`etf` Supabase 테이블 스키마로만 결합된 별개의 배포 단위**다. `web/`은 publishable key로 읽기만 하고, `collector/`가 secret key로 유일하게 쓴다. 스키마 변경은 항상 두 서브프로젝트 모두에 영향을 준다(`collector/src/etf_collector/domain/etf/models.py` ↔ `web/domain/etf/parser/etf.parser.ts`의 `RawEtfRow`) — 한쪽만 바뀌면 조용히 필드 누락/타입 불일치가 생긴다. 이 경계를 넘는 변경(예: `web/`에 쓰기 로직 추가, `collector/`가 프론트 렌더링에 관여)은 구조 위반 신호로 본다.
+`web/`(etfy)과 `collector/`(구 eft-collector)는 **`etf` Supabase 테이블 스키마로만 결합된 별개의 배포 단위**다. `web/`은 publishable key로 읽기만 하고, `collector/`가 secret key로 유일하게 쓴다. 스키마 변경은 항상 두 서브프로젝트 모두에 영향을 준다(`collector/src/etf_collector/domain/etf/models.py` ↔ `web/domain/etf/parser/etf.parser.ts`의 `RawEtfRow`) — 한쪽만 바뀌면 조용히 필드 누락/타입 불일치가 생긴다. 이 경계를 넘는 변경(예: `web/`에 쓰기 로직 추가, `collector/`가 프론트 렌더링에 관여)은 구조 위반 신호로 본다.
 
 ### web/ (Next.js — 읽기 전용 ETF 정보 사이트)
 

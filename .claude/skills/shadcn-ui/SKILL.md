@@ -1,7 +1,7 @@
 ---
 name: shadcn-ui
 description: >
-  etfview.kr Tailwind/shadcn UI 구현 패턴 SSoT.
+  etfy Tailwind/shadcn UI 구현 패턴 SSoT.
   모바일 퍼스트 className 규칙(44px 터치 타겟), Card/Badge/ToggleGroup 컴포넌트 패턴,
   피처 콜로케이션 스켈레톤 컴포넌트, 빈 상태 카드.
   Next.js App Router 메커니즘은 nextjs-guide, 데이터 레이어는 react-query-guide 참조.

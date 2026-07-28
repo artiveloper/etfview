@@ -42,7 +42,7 @@ def get_supabase_client(settings: Settings) -> Client:
 ```
 
 - `SUPABASE_SECRET_KEY`는 `.env`(컨테이너 환경변수)로만 주입하고, 로그·에러 메시지에 절대 노출하지 않는다.
-- 이 프로젝트에는 publishable 키를 쓰는 클라이언트가 없다 — 만약 publishable 키 클라이언트가 코드에 등장하면(예: 읽기 검증용) 왜 필요한지부터 의심한다. 읽기는 `etfview.kr`(별도 프로젝트)의 책임이다.
+- 이 프로젝트에는 publishable 키를 쓰는 클라이언트가 없다 — 만약 publishable 키 클라이언트가 코드에 등장하면(예: 읽기 검증용) 왜 필요한지부터 의심한다. 읽기는 `etfy`(별도 프로젝트)의 책임이다.
 
 ---
 
@@ -80,7 +80,7 @@ alter table public.etf enable row level security;
 
 ### 이 프로젝트의 두 가지 RLS 패턴
 
-**공개 읽기 테이블 (`etf`, `etf_constituent`)** — 프론트엔드(`etfview.kr`)가 publishable key로 직접 SELECT:
+**공개 읽기 테이블 (`etf`, `etf_constituent`)** — 프론트엔드(`etfy`)가 publishable key로 직접 SELECT:
 
 ```sql
 create policy "public_read_etf" on public.etf
@@ -114,7 +114,7 @@ create index ix_etf_base_market_class on public.etf (base_market_class);
 
 이 프로젝트에는 TypeScript 타입 생성(`supabase gen types`)이 없다 — 대신 **`domain/etf/models.py`의 pydantic 모델이 스키마의 Python 쪽 SSoT**다. 마이그레이션으로 컬럼을 추가/변경하면 반드시 같은 커밋에서 `EtfInfo` 모델과 `EtfInfoRepository`를 함께 갱신한다. 하나만 바뀌면 upsert 시 조용히 필드가 누락되거나 타입 불일치가 런타임에야 드러난다.
 
-프론트엔드(`etfview.kr`)의 `RawEtfRow`/파서도 같은 테이블을 읽으므로, `etf` 스키마를 바꾸면 그쪽 타입도 갱신이 필요하다는 것을 PR/커밋 설명에 남긴다(레포가 분리되어 있어 자동 동기화 수단이 없다).
+프론트엔드(`etfy`)의 `RawEtfRow`/파서도 같은 테이블을 읽으므로, `etf` 스키마를 바꾸면 그쪽 타입도 갱신이 필요하다는 것을 PR/커밋 설명에 남긴다(레포가 분리되어 있어 자동 동기화 수단이 없다).
 
 ---
 
@@ -148,5 +148,5 @@ supabase db push        # 원격 적용 — 실행 전 항상 diff 확인
 
 ### 개발
 - [ ] `etf` 스키마 변경 시 `domain/etf/models.py` + `EtfInfoRepository` 동시 갱신
-- [ ] `etfview.kr` 쪽 타입도 갱신이 필요함을 커밋/PR에 명시
+- [ ] `etfy` 쪽 타입도 갱신이 필요함을 커밋/PR에 명시
 - [ ] 마이그레이션 파일은 CLI 유무와 무관하게 `supabase/migrations/`에 보존
