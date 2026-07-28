@@ -118,8 +118,8 @@ async def _run_backfill_price(days_back: int) -> None:
     etf_repository = EtfInfoRepository(supabase)
     price_repository = EtfPriceRepository(supabase)
     async with httpx.AsyncClient(timeout=30.0) as http_client:
-        auth_manager = KisAuthManager(settings, supabase, http_client)
         api_client = KisApiClient(settings, http_client)
+        auth_manager = KisAuthManager(settings, supabase, api_client)
         await backfill_etf_price(
             price_repository, etf_repository, auth_manager, api_client, days_back
         )
@@ -129,7 +129,8 @@ async def _run_revoke() -> None:
     settings = get_settings()
     supabase = get_supabase_client(settings)
     async with httpx.AsyncClient(timeout=30.0) as http_client:
-        auth_manager = KisAuthManager(settings, supabase, http_client)
+        api_client = KisApiClient(settings, http_client)
+        auth_manager = KisAuthManager(settings, supabase, api_client)
         await auth_manager.revoke_token()
     logger.info("KIS 접근토큰 폐기 완료")
 

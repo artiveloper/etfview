@@ -21,10 +21,10 @@ from datetime import UTC, datetime, timedelta
 from typing import Any, cast
 from uuid import uuid4
 
-import httpx
 from postgrest import APIError
 
 from etf_collector.config import Settings
+from etf_collector.infra.kis.client import KisApiClient
 from supabase import Client
 
 _TOKEN_CACHE_TABLE = "kis_token_cache"
@@ -41,12 +41,10 @@ def _new_lock_owner_identifier() -> str:
 
 
 class KisAuthManager:
-    def __init__(
-        self, settings: Settings, supabase: Client, http_client: httpx.AsyncClient
-    ) -> None:
+    def __init__(self, settings: Settings, supabase: Client, api_client: KisApiClient) -> None:
         self._settings = settings
         self._supabase = supabase
-        self._http = http_client
+        self._api_client = api_client
 
     async def get_access_token(self) -> str:
         token = self._valid_cached_token()
@@ -60,15 +58,7 @@ class KisAuthManager:
         if cached is None:
             return
         token, _ = cached
-        response = await self._http.post(
-            f"{self._settings.kis_base_url}/oauth2/revokeP",
-            json={
-                "appkey": self._settings.kis_app_key,
-                "appsecret": self._settings.kis_app_secret,
-                "token": token,
-            },
-        )
-        response.raise_for_status()
+        await self._api_client.revoke_token(token)
         self._supabase.table(_TOKEN_CACHE_TABLE).delete().eq("id", _TOKEN_ROW_ID).execute()
 
     def _valid_cached_token(self) -> str | None:
@@ -162,19 +152,7 @@ class KisAuthManager:
         ).eq("id", _TOKEN_ROW_ID).eq("lock_owner_identifier", owner).execute()
 
     async def _issue_and_cache_token(self) -> str:
-        # /oauth2/tokenP는 KIS 공지(2023-10-27)상 초당 1건 제한이다. 리스 락으로
-        # 인스턴스 간 동시 재발급 자체를 막고, 캐시 우선 조회로 재발급 빈도를
-        # 만료 임박 시점 1회로 제한하므로 별도의 초당 호출 페이싱은 두지 않는다.
-        response = await self._http.post(
-            f"{self._settings.kis_base_url}/oauth2/tokenP",
-            json={
-                "grant_type": "client_credentials",
-                "appkey": self._settings.kis_app_key,
-                "appsecret": self._settings.kis_app_secret,
-            },
-        )
-        response.raise_for_status()
-        body = response.json()
+        body = await self._api_client.issue_token()
         access_token: str = body["access_token"]
         issued_at = datetime.now(UTC)
         expires_at = issued_at + timedelta(seconds=int(body["expires_in"]))

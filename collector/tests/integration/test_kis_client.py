@@ -1,5 +1,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 
 from etf_collector.config import Settings
@@ -79,3 +80,59 @@ async def test_get_raises_business_error_without_retry() -> None:
         await client.get("/path", "TR001", "token", {})
 
     http_client.get.assert_called_once()
+
+
+def _token_response(status_code: int, body: dict | None = None) -> MagicMock:
+    response = MagicMock()
+    response.status_code = status_code
+    response.text = f"status={status_code}"
+    if status_code >= 400:
+        response.raise_for_status.side_effect = httpx.HTTPStatusError(
+            "error", request=MagicMock(), response=response
+        )
+    else:
+        response.raise_for_status.return_value = None
+        response.json.return_value = body or {}
+    return response
+
+
+async def test_issue_token_returns_body_on_success() -> None:
+    http_client = AsyncMock()
+    http_client.post.return_value = _token_response(
+        200, {"access_token": "new-token", "expires_in": 86400}
+    )
+
+    client = KisApiClient(_settings(), http_client)
+    result = await client.issue_token()
+
+    assert result["access_token"] == "new-token"
+    http_client.post.assert_called_once()
+
+
+async def test_issue_token_retries_on_http_error_then_succeeds() -> None:
+    http_client = AsyncMock()
+    http_client.post.side_effect = [
+        _token_response(403),
+        _token_response(200, {"access_token": "new-token", "expires_in": 86400}),
+    ]
+
+    client = KisApiClient(_settings(), http_client)
+    with patch("etf_collector.infra.kis.client.asyncio.sleep", new=AsyncMock()):
+        result = await client.issue_token()
+
+    assert result["access_token"] == "new-token"
+    assert http_client.post.call_count == 2
+
+
+async def test_issue_token_raises_after_max_retries() -> None:
+    http_client = AsyncMock()
+    http_client.post.return_value = _token_response(403)
+
+    client = KisApiClient(_settings(), http_client)
+    with (
+        patch("etf_collector.infra.kis.client.asyncio.sleep", new=AsyncMock()),
+        pytest.raises(httpx.HTTPStatusError),
+    ):
+        await client.issue_token()
+
+    assert http_client.post.call_count == 3

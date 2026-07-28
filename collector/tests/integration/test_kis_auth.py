@@ -24,29 +24,27 @@ async def test_returns_cached_token_when_still_valid() -> None:
     supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
         {"access_token": "cached-token", "expires_at": expires_at.isoformat()}
     ]
-    http_client = AsyncMock()
+    api_client = AsyncMock()
 
-    manager = KisAuthManager(_settings(), supabase, http_client)
+    manager = KisAuthManager(_settings(), supabase, api_client)
     token = await manager.get_access_token()
 
     assert token == "cached-token"
-    http_client.post.assert_not_called()
+    api_client.issue_token.assert_not_called()
 
 
 async def test_issues_and_caches_new_token_when_cache_empty() -> None:
     supabase = MagicMock()
     supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = []
 
-    http_client = AsyncMock()
-    response = MagicMock()
-    response.json.return_value = {"access_token": "new-token", "expires_in": 86400}
-    http_client.post.return_value = response
+    api_client = AsyncMock()
+    api_client.issue_token.return_value = {"access_token": "new-token", "expires_in": 86400}
 
-    manager = KisAuthManager(_settings(), supabase, http_client)
+    manager = KisAuthManager(_settings(), supabase, api_client)
     token = await manager.get_access_token()
 
     assert token == "new-token"
-    http_client.post.assert_called_once()
+    api_client.issue_token.assert_called_once()
     supabase.table.return_value.upsert.assert_called_once()
 
 
@@ -56,12 +54,10 @@ async def test_acquires_lock_issues_token_and_releases_lock() -> None:
     update_eq = supabase.table.return_value.update.return_value.eq
     update_eq.return_value.or_.return_value.execute.return_value.data = [{"id": 1}]
 
-    http_client = AsyncMock()
-    response = MagicMock()
-    response.json.return_value = {"access_token": "new-token", "expires_in": 86400}
-    http_client.post.return_value = response
+    api_client = AsyncMock()
+    api_client.issue_token.return_value = {"access_token": "new-token", "expires_in": 86400}
 
-    manager = KisAuthManager(_settings(), supabase, http_client)
+    manager = KisAuthManager(_settings(), supabase, api_client)
     token = await manager.get_access_token()
 
     assert token == "new-token"
@@ -96,11 +92,11 @@ async def test_polls_cache_when_lock_held_by_another_process() -> None:
         {"message": "duplicate key value", "code": "23505"}
     )
 
-    http_client = AsyncMock()
+    api_client = AsyncMock()
 
-    manager = KisAuthManager(_settings(), supabase, http_client)
+    manager = KisAuthManager(_settings(), supabase, api_client)
     with patch("etf_collector.infra.kis.auth.asyncio.sleep", new=AsyncMock()):
         token = await manager.get_access_token()
 
     assert token == "other-process-token"
-    http_client.post.assert_not_called()
+    api_client.issue_token.assert_not_called()

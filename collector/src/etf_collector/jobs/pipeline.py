@@ -78,8 +78,8 @@ async def run_intraday_price(
 ) -> None:
     """장중 30분 주기: 오늘 일별 시세(미완성 봉)만 갱신."""
     async with httpx.AsyncClient(timeout=30.0) as http_client:
-        auth_manager = KisAuthManager(settings, supabase, http_client)
         api_client = KisApiClient(settings, http_client)
+        auth_manager = KisAuthManager(settings, supabase, api_client)
         await _run_stage(
             job_log_repository,
             "sync_etf_price_intraday",
@@ -104,8 +104,8 @@ async def run_daily_close(
 ) -> None:
     """장 마감 후 1회: 오늘 봉 확정 + EOD 시세 스냅샷(enrich) + 구성종목 바스켓."""
     async with httpx.AsyncClient(timeout=30.0) as http_client:
-        auth_manager = KisAuthManager(settings, supabase, http_client)
         api_client = KisApiClient(settings, http_client)
+        auth_manager = KisAuthManager(settings, supabase, api_client)
 
         await _run_stage(
             job_log_repository,

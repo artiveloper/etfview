@@ -49,6 +49,12 @@ _RATE_LIMIT_BACKOFF_SECONDS = (0.1, 0.5, 1.5)
 _RATE_LIMIT_MSG_CODES = frozenset({"EGW00201"})
 _TOKEN_ERROR_KEYWORDS = ("접근토큰", "token이 유효하지", "기간이 만료")
 
+# /oauth2/tokenP는 KIS 공지(2023-10-27)상 초당 1건 제한이다. 호출측(KisAuthManager)의
+# 리스 락으로 인스턴스 간 동시 재발급 자체를 막지만, 그럼에도 KIS 쪽 분산 정책 등으로
+# 간헐적 403이 관측돼(2026-07-28) 짧은 대기 후 재시도한다.
+_TOKEN_ISSUE_MAX_RETRIES = 2
+_TOKEN_ISSUE_BACKOFF_SECONDS = (3.0, 10.0)
+
 
 class KisApiClient:
     def __init__(self, settings: Settings, http_client: httpx.AsyncClient) -> None:
@@ -134,3 +140,42 @@ class KisApiClient:
                     raise KisAuthenticationError(msg_cd, msg1)
 
                 raise KisApiError(msg_cd, msg1)
+
+    async def issue_token(self) -> dict[str, Any]:
+        url = f"{self._settings.kis_base_url}/oauth2/tokenP"
+        payload = {
+            "grant_type": "client_credentials",
+            "appkey": self._settings.kis_app_key,
+            "appsecret": self._settings.kis_app_secret,
+        }
+        attempt = 0
+        while True:
+            response = await self._http.post(url, json=payload)
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError:
+                attempt += 1
+                logger.error(
+                    "KIS 접근토큰 발급 실패 (attempt=%d/%d, status=%d): %s",
+                    attempt,
+                    _TOKEN_ISSUE_MAX_RETRIES,
+                    response.status_code,
+                    response.text,
+                )
+                if attempt > _TOKEN_ISSUE_MAX_RETRIES:
+                    raise
+                await asyncio.sleep(_TOKEN_ISSUE_BACKOFF_SECONDS[attempt - 1])
+                continue
+            body: dict[str, Any] = response.json()
+            return body
+
+    async def revoke_token(self, token: str) -> None:
+        response = await self._http.post(
+            f"{self._settings.kis_base_url}/oauth2/revokeP",
+            json={
+                "appkey": self._settings.kis_app_key,
+                "appsecret": self._settings.kis_app_secret,
+                "token": token,
+            },
+        )
+        response.raise_for_status()
