@@ -39,4 +39,4 @@ Next.js App Router + React Query 기반. Supabase에 publishable key로 직접 �
 
 ### collector/ (Python — KIS Open API 배치 수집기)
 
-한국투자증권(KIS) Open API로 ETF 정보를 수집해 Supabase `etf`에 적재하는 **APScheduler 상시 프로세스**다(Docker 컨테이너 배포). 규모는 소규모 배치 수집기 — 마이크로서비스 분해나 메시지 큐 같은 복잡성은 요구사항 대비 과설계다. 확장 지점은 이미 `jobs/`에 분리되어 있다: 현재는 `sync_etf_info`(마스터파일 기반 부분 필드) 1개 job뿐이며, 종목별 KIS 상세 API로 나머지 필드(기초지수/운용사/총보수 등)를 채우는 enrichment job이 다음 확장 대상이다. 이 확장이 기존 `domain/infra/jobs/scheduler` 계층 경계를 깨지 않는지가 핵심 리뷰 포인트.
+한국투자증권(KIS) Open API로 ETF 정보를 수집해 Supabase `etf`에 적재하는 **APScheduler 상시 프로세스**다(Docker 컨테이너 배포, 같은 프로세스에 잡 수동 트리거용 최소 FastAPI가 얹혀 있다 — `api/`, `scheduler/registry.py`). cron으로 등록되는 잡은 모두 `JobRegistry`에도 등록해 `POST /jobs/{job_id}/trigger`로 수동 실행할 수 있어야 한다는 것이 확정된 컨벤션이다. 규모는 소규모 배치 수집기 — 마이크로서비스 분해나 메시지 큐 같은 복잡성은 요구사항 대비 과설계다. 확장 지점은 이미 `jobs/`에 분리되어 있다: 현재는 `sync_etf_info`(마스터파일 기반 부분 필드) 1개 job뿐이며, 종목별 KIS 상세 API로 나머지 필드(기초지수/운용사/총보수 등)를 채우는 enrichment job이 다음 확장 대상이다. 이 확장이 기존 `domain/infra/jobs/scheduler` 계층 경계를 깨지 않는지가 핵심 리뷰 포인트.

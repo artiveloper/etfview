@@ -30,7 +30,7 @@ model: opus
 
 ## 프로젝트 특이사항
 
-eft-collector는 HTTP API를 노출하지 않는 배치 수집기다 — "API 계약" 리뷰는 두 방향의 경계로 치환해서 본다: (1) **KIS Open API 소비 계약** (`infra/kis/`) — 응답 필드 누락/타입 변경 시 실패 처리, 토큰 재발급 빈도 제한 대응, (2) **Supabase 적재 계약** (`infra/supabase/`) — upsert 충돌 키(`on_conflict`), 부분 실패 처리.
+eft-collector는 기본적으로 배치 수집기이고, 잡을 수동 트리거하는 최소 HTTP API(`api/`)만 얹혀 있다 — "API 계약" 리뷰는 세 방향의 경계로 본다: (1) **KIS Open API 소비 계약** (`infra/kis/`) — 응답 필드 누락/타입 변경 시 실패 처리, 토큰 재발급 빈도 제한 대응, (2) **Supabase 적재 계약** (`infra/supabase/`) — upsert 충돌 키(`on_conflict`), 부분 실패 처리, (3) **잡 수동 트리거 API 계약** (`api/`, `scheduler/registry.py`) — `POST /jobs/{job_id}/trigger`가 노출하는 잡은 `scheduler/registry.py`의 `JobRegistry`에 등록된 잡과 항상 1:1이어야 한다. 새 스케줄 잡을 추가하면서 `JobRegistry` 등록(및 그에 따른 수동 트리거 API 노출)을 빠뜨리는 것은 구조 위반으로 본다 — cron 전용 잡이 남아있지 않은지가 리뷰 포인트다. 이 API는 단일 운영자용 내부 관리 API로, 인증도 별도 시크릿 없이 `KIS_APP_KEY`를 Bearer 토큰으로 재사용하는 단순한 설계다 — 다중 사용자·세분화된 인가가 필요해지기 전까지 이 단순함을 유지하는 것이 맞는지가 트레이드오프 포인트.
 
 계층 구조(`python-guide`의 src layout 그대로 적용):
 - `domain/etf/` — 순수 타입(`EtfInfo` pydantic 모델), 외부 의존성 없음

@@ -120,12 +120,13 @@ collector/src/etf_collector/domain/etf/    순수 타입 (EtfInfo pydantic 모�
 collector/src/etf_collector/infra/kis/     KIS 마스터파일 다운로드·파싱, OAuth 토큰 캐싱, httpx 래퍼
 collector/src/etf_collector/infra/supabase/ Supabase 클라이언트, EtfInfoRepository
 collector/src/etf_collector/jobs/          domain+infra 오케스트레이션 (sync_etf_info)
-collector/src/etf_collector/scheduler/     APScheduler 등록 + CLI 진입점 (--once 플래그)
+collector/src/etf_collector/scheduler/     APScheduler 등록 + CLI 진입점(--once 플래그) + registry.py(잡 등록·락 공유)
+collector/src/etf_collector/api/           스케줄 잡 수동 트리거 FastAPI 앱 (스케줄러와 같은 프로세스)
 collector/supabase/migrations/             etf, kis_token_cache, etf_constituent, job_execution_log 스키마
 collector/tests/{unit,integration}/
 ```
 
-스택: Python 3.12 · `uv` + `pyproject.toml` · httpx(비동기) · APScheduler · pydantic-settings · supabase-py · ruff/mypy strict/pytest.
+스택: Python 3.12 · `uv` + `pyproject.toml` · httpx(비동기) · APScheduler · FastAPI/uvicorn · pydantic-settings · supabase-py · ruff/mypy strict/pytest.
 
 ```bash
 cd collector
@@ -137,6 +138,8 @@ uv run etf-collector --once                         # 단발 실행 (.env 필요
 ```
 
 > KIS **ETF 구성종목시세 API**(국내주식-073, TR `FHKST121600C0`)는 `output2`에 구성종목을 **구성비중(`etf_cnfg_issu_rlim`) 내림차순 상위 30개까지만** 반환한다(장중 실측 확인 — KODEX 200은 구성종목 201개 중 비중 상위 30개만 내려옴). 그래서 `etf_constituent`에 적재되는 값은 비중 상위 30종목일 뿐 전체 보유내역이 아니다 — 구성종목 커버리지를 다룰 때는 이 한계를 전제로 삼는다. 또한 `output2`는 구성종목별 실시간 시세 배열이라 **장 개장 전에는 비어서 돌아온다** — 수집 단계를 마감 후(15:40)에 두는 이유다.
+
+> **등록된 스케줄 잡은 모두 수동 실행 API를 함께 노출한다.** `scheduler/main.py`의 `_run_scheduler()`가 cron으로 등록하는 모든 잡은 `scheduler/registry.py`의 `JobRegistry`(잡 id → 락 + 실행 콜러블)에 함께 등록해, `api/main.py`(FastAPI, 스케줄러와 같은 프로세스·컨테이너·포트 8000)의 `POST /jobs/{job_id}/trigger`로도 즉시 실행할 수 있게 한다. 새 잡을 추가하면 cron 등록과 `JobId` 리터럴·`JobRegistry` 등록을 함께 늘려야 한다 — cron만 등록하고 API 등록을 빠뜨리지 않는다. cron 트리거와 API 트리거는 잡별로 같은 `asyncio.Lock`을 공유해 동시 실행을 막는다(겹치면 API 쪽은 즉시 `409`, cron 쪽은 건너뛰고 로그만 남김). 인증은 별도 시크릿 없이 기존 `KIS_APP_KEY` 값을 그대로 사용한다 — 호출 시 `Authorization: Bearer $KIS_APP_KEY` 헤더를 넣는다.
 
 ---
 

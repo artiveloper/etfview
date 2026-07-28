@@ -41,7 +41,7 @@ description: 백엔드 테스트 전략 공통 원칙(테스트 피라미드, �
 
 ## 프로젝트 특이사항
 
-이 프로젝트에는 REST API가 없으므로 "계약 경계"는 (1) KIS 마스터파일/응답 파싱 계약과 (2) Supabase upsert 계약으로 치환한다. "권한 경계"도 사용자 인가가 아니라 secret key(service_role 역할)의 RLS 우회 범위가 의도한 테이블(`etf`, `kis_token_cache`)로만 한정되는지로 치환한다.
+이 프로젝트의 REST API는 잡 수동 트리거용(`POST /jobs/{job_id}/trigger`) 하나뿐이므로 "계약 경계"는 (1) KIS 마스터파일/응답 파싱 계약, (2) Supabase upsert 계약, (3) 잡 트리거 API 계약(401/409/202)으로 나눈다. "권한 경계"는 사용자 인가가 아니라 두 가지로 치환한다 — secret key(service_role 역할)의 RLS 우회 범위가 의도한 테이블(`etf`, `kis_token_cache`)로만 한정되는지, 그리고 트리거 API의 `Authorization: Bearer $KIS_APP_KEY` 헤더 검증이 실제로 401을 막아내는지.
 
 현재 테스트 구성(`tests/unit/`, `tests/integration/`)은 이 원칙을 이미 따른다:
 - `tests/unit/test_master_file.py` — 고정폭 파싱(순수 함수)을 mock 없이 검증. 실제 KIS 데이터로 오프셋을 검증한 이력이 있으므로(1바이트 예약 필드 발견), 새 필드 추가 시에도 합성 데이터가 아니라 실제 응답 구조 기반으로 offset을 재검증해야 한다.

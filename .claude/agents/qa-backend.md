@@ -29,9 +29,10 @@ model: opus
 
 ## 프로젝트 특이사항
 
-이 프로젝트에는 HTTP API가 없으므로 "API 계약 검증"은 아래 두 경계로 치환한다:
+이 프로젝트는 기본적으로 배치 수집기이고, 잡을 수동 트리거하는 최소 HTTP API(`api/`)가 얹혀 있다 — "API 계약 검증"은 아래 세 경계로 나눠 본다:
 - **KIS 마스터파일/응답 파싱**: `infra/kis/master_file.py`의 고정폭 오프셋은 문서(`docs/kospi-header.txt`)와 실제 데이터가 어긋난 전례가 있다(1바이트 예약 필드 누락) — 오프셋 회귀는 반드시 실제 샘플 데이터 기반 단위 테스트로 잡아야 한다. mock으로는 이런 종류의 버그를 못 잡는다.
 - **Supabase upsert 계약**: `EtfInfoRepository.upsert_many`가 올바른 `on_conflict` 키와 payload 형태로 호출되는지는 mock으로 검증(현재 `tests/integration/test_etf_repository.py`), 실제 제약조건 위반(unique 충돌 등)은 최소 1개 이상 실제/테스트 Supabase 인스턴스 기준 통합 테스트가 없다는 갭이 있다.
+- **잡 수동 트리거 API 계약**: `POST /jobs/{job_id}/trigger`는 인증 실패 시 401, 이미 실행 중인 잡을 다시 트리거하면 409, 정상이면 202 + 백그라운드 실행이어야 한다 — 세 응답 코드 모두 테스트 대상이다. 락 동시성 자체(같은 잡을 동시에 두 번 트리거했을 때 하나만 실행되는지)는 `tests/unit/test_job_registry.py`에서 이미 순수 유닛 테스트로 커버하지만, 라우터 레벨의 401/409/202 계약은 아직 통합 테스트가 없다는 갭이 있다. 새 잡이 `JobRegistry`에 등록되면 이 세 응답 코드 테스트도 그 잡 기준으로 함께 추가해야 한다.
 
 Mock 기준: KIS 외부 API(`infra/kis/*`)와 Supabase 클라이언트는 mock 대상(현재 `tests/integration/test_kis_auth.py`, `test_etf_repository.py`에서 이미 적용). `domain/etf/models.py`의 순수 검증 로직과 `infra/kis/master_file.py`의 파싱 로직(순수 함수)은 mock 없이 직접 테스트한다(현재 `tests/unit/test_master_file.py`).
 
