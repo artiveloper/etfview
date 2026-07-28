@@ -6,6 +6,8 @@ services:
       - .env
     environment:
       - LOG_DIR=/app/logs
+    ports:
+      - "8000:8000"
     volumes:
       - ./logs:/app/logs
     user: "1001:1001"

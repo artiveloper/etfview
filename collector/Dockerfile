@@ -10,4 +10,6 @@ RUN uv sync --no-dev --no-install-project
 COPY src ./src
 RUN uv sync --no-dev
 
-CMD ["/app/.venv/bin/etf-collector"]
+EXPOSE 8000
+
+CMD ["/app/.venv/bin/etf-collector-api"]
