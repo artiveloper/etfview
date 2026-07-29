@@ -31,7 +31,7 @@ export function EtfOverviewSkeleton() {
             <CardContent className="p-4">
                 <Skeleton className="h-4 w-16" />
                 <div className="mt-4 space-y-3">
-                    {Array.from({ length: 8 }).map((_, i) => (
+                    {Array.from({ length: 7 }).map((_, i) => (
                         <Skeleton key={i} className="h-4 w-full" />
                     ))}
                 </div>
