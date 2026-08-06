@@ -29,6 +29,12 @@ class Settings(BaseSettings):
     close_cron_hour: str = "15"
     close_cron_minute: str = "40"
 
+    # NXT 후장 마감 후 재동기화 (1일 1회) — NXT는 20:00까지 거래되어 15:40 마감 스케줄만으로는
+    # NXT 반영분 최종가를 놓친다. run_daily_close를 한 번 더 돌려 최종가를 다시 확정한다.
+    close_nxt_cron_day_of_week: str = "mon-fri"
+    close_nxt_cron_hour: str = "20"
+    close_nxt_cron_minute: str = "30"
+
     @property
     def kis_base_url(self) -> str:
         if self.kis_env == "paper":

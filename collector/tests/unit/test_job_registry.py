@@ -47,5 +47,5 @@ async def test_run_locked_skips_when_already_running() -> None:
 
 
 def test_job_id_covers_all_registered_jobs() -> None:
-    job_ids: tuple[JobId, ...] = ("open", "intraday", "close")
-    assert set(job_ids) == {"open", "intraday", "close"}
+    job_ids: tuple[JobId, ...] = ("open", "intraday", "close", "close_nxt")
+    assert set(job_ids) == {"open", "intraday", "close", "close_nxt"}

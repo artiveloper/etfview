@@ -22,7 +22,7 @@ from supabase import Client
 
 logger = logging.getLogger(__name__)
 
-JobId = Literal["open", "intraday", "close"]
+JobId = Literal["open", "intraday", "close", "close_nxt"]
 
 # 장중 실행이 KIS 지연 등으로 30분 창을 넘기면 다음 실행과 겹칠 수 있어 단일 인스턴스로
 # 제한하고, 지연 실행은 grace 안에서만 따라잡게 한다(누적 misfire 폭주 방지).
@@ -97,6 +97,19 @@ def build_job_registry(settings: Settings, supabase: Client) -> JobRegistry:
                 job_log_repository,
             ),
         ),
+        "close_nxt": RegisteredJob(
+            name="close_nxt",
+            lock=asyncio.Lock(),
+            run=lambda: run_daily_close(
+                settings,
+                supabase,
+                etf_repository,
+                quote_repository,
+                price_repository,
+                constituent_repository,
+                job_log_repository,
+            ),
+        ),
     }
     return JobRegistry(jobs)
 
@@ -137,8 +150,19 @@ def register_cron_jobs(
         args=["close"],
         id="close",
     )
+    scheduler.add_job(
+        registry.run_locked,
+        trigger="cron",
+        day_of_week=settings.close_nxt_cron_day_of_week,
+        hour=settings.close_nxt_cron_hour,
+        minute=settings.close_nxt_cron_minute,
+        max_instances=_MAX_INSTANCES,
+        misfire_grace_time=_MISFIRE_GRACE_SECONDS,
+        args=["close_nxt"],
+        id="close_nxt",
+    )
     logger.info(
-        "스케줄 등록 완료: open=%s %s:%s / intraday=%s %s:%s / close=%s %s:%s",
+        "스케줄 등록 완료: open=%s %s:%s / intraday=%s %s:%s / close=%s %s:%s / close_nxt=%s %s:%s",
         settings.open_cron_day_of_week,
         settings.open_cron_hour,
         settings.open_cron_minute,
@@ -148,4 +172,7 @@ def register_cron_jobs(
         settings.close_cron_day_of_week,
         settings.close_cron_hour,
         settings.close_cron_minute,
+        settings.close_nxt_cron_day_of_week,
+        settings.close_nxt_cron_hour,
+        settings.close_nxt_cron_minute,
     )

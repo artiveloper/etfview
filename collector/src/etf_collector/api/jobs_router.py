@@ -1,4 +1,4 @@
-"""등록된 스케줄 잡(open/intraday/close)을 수동으로 트리거하는 라우터."""
+"""등록된 스케줄 잡(open/intraday/close/close_nxt)을 수동으로 트리거하는 라우터."""
 
 from __future__ import annotations
 
